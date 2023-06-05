@@ -2,16 +2,16 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on Danp&#39;s Personal Blog</title>
-    <link>https://example.com/posts/</link>
+    <link>https://d4n-p.github.io/posts/</link>
     <description>Recent content in Posts on Danp&#39;s Personal Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language><atom:link href="https://example.com/posts/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language><atom:link href="https://d4n-p.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title></title>
-      <link>https://example.com/posts/post/</link>
+      <link>https://d4n-p.github.io/posts/post/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://example.com/posts/post/</guid>
+      <guid>https://d4n-p.github.io/posts/post/</guid>
       <description>post</description>
     </item>
     
