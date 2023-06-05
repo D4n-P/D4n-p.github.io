@@ -15,5 +15,14 @@
       <description></description>
     </item>
     
+    <item>
+      <title></title>
+      <link>https://example.com/posts/post/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://example.com/posts/post/</guid>
+      <description>post</description>
+    </item>
+    
   </channel>
 </rss>
