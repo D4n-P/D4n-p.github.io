@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>sqlinjection on Danp&#39;s Personal Blog</title>
-    <link>https://d4n-p.github.io/tags/sqlinjection/</link>
+    <link>https://danp.bz/tags/sqlinjection/</link>
     <description>Recent content in sqlinjection on Danp&#39;s Personal Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 10 Jun 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://d4n-p.github.io/tags/sqlinjection/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 10 Jun 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danp.bz/tags/sqlinjection/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Hack The Box: Soccer</title>
-      <link>https://d4n-p.github.io/posts/hackthebox-soccer/</link>
+      <link>https://danp.bz/posts/hackthebox-soccer/</link>
       <pubDate>Sat, 10 Jun 2023 00:00:00 +0000</pubDate>
       
-      <guid>https://d4n-p.github.io/posts/hackthebox-soccer/</guid>
+      <guid>https://danp.bz/posts/hackthebox-soccer/</guid>
       <description>Sumary Sumary Overview Nmap Exploiting tiny file manager Authenticating with Default Credentials Uploading Malicious PHP File Internal Enumeration as www-data Obtaining Credentials With SQL Injection Privilage Escalation with doas + dstat Extra Mile Exploiting SQL Injection with SQLMap Overview Discover soccer.htb Brute force directories to find tinyfilemanager Exploit a file upload vulnerability to get an initial shell as www-data Internal enumeration to find the soc-player.soccer.htb name Exploit a SQL Injection vulnerability via websockets to get user and password for the user player ssh in as player Enumerate again and find that the user can run dstat as root through the doas program Get root Nmap danp@local:~|⇒ nmap -sV 10.</description>
     </item>
     
