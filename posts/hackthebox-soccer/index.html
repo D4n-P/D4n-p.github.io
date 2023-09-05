@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head>
 	<meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Hack The Box: Soccer - Danp&#39;s Personal Blog</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Hack The Box: Soccer - Journal</title><meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="Soccer is an easy machine from hackthebox. IT starts with a vulnerable version of tiny file manager with default credentials. This version allows any authenticated users to upload arbitrary files and run php code. After we get a shell, we need to find a subdomain that allows us to find a SQL Injection vulnerability through a websocket service. Exploiting it, gives us credentials to ssh in. Enumerating a bit more as a different user, we spot that the doas config file lets us run dstat with high privileges which leads to the root shell." />
 	<meta property="og:image" content=""/>
 	<meta property="og:title" content="Hack The Box: Soccer" />
@@ -34,7 +34,7 @@
 <body>
         <div class="content"><header>
 	<div class="main">
-		<a href="https://danp.bz">Danp&#39;s Personal Blog</a>
+		<a href="https://danp.bz/">Journal</a>
 	</div>
 	<nav>
 		
@@ -47,7 +47,7 @@
 		<a href="/tags">Tags</a>
 		
 		| <span id="dark-mode-toggle" onclick="toggleTheme()"></span>
-		<script src="https://danp.bzjs/themetoggle.js"></script>
+		<script src="https://danp.bz/js/themetoggle.js"></script>
 		
 	</nav>
 </header>
