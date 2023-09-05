@@ -6,11 +6,29 @@
     <description>Recent content in Tags on Danp&#39;s Personal Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 10 Jun 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danp.bz/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 05 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danp.bz/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>cacti</title>
+      <link>https://danp.bz/tags/cacti/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/cacti/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>docker</title>
+      <link>https://danp.bz/tags/docker/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/docker/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>easy</title>
       <link>https://danp.bz/tags/easy/</link>
-      <pubDate>Sat, 10 Jun 2023 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
       
       <guid>https://danp.bz/tags/easy/</guid>
       <description></description>
@@ -19,9 +37,18 @@
     <item>
       <title>hackthebox</title>
       <link>https://danp.bz/tags/hackthebox/</link>
-      <pubDate>Sat, 10 Jun 2023 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
       
       <guid>https://danp.bz/tags/hackthebox/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>hashcat</title>
+      <link>https://danp.bz/tags/hashcat/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/hashcat/</guid>
       <description></description>
     </item>
     
