@@ -17,6 +17,15 @@
     </item>
     
     <item>
+      <title>command injection</title>
+      <link>https://danp.bz/tags/command-injection/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/command-injection/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>docker</title>
       <link>https://danp.bz/tags/docker/</link>
       <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
@@ -35,6 +44,15 @@
     </item>
     
     <item>
+      <title>gitea</title>
+      <link>https://danp.bz/tags/gitea/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/gitea/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>hackthebox</title>
       <link>https://danp.bz/tags/hackthebox/</link>
       <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
@@ -49,6 +67,15 @@
       <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
       
       <guid>https://danp.bz/tags/hashcat/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>searchor</title>
+      <link>https://danp.bz/tags/searchor/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/searchor/</guid>
       <description></description>
     </item>
     

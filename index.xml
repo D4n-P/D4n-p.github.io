@@ -8,6 +8,15 @@
     <language>en-us</language>
     <lastBuildDate>Tue, 05 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danp.bz/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Hack The Box: Busqueda</title>
+      <link>https://danp.bz/posts/hackthebox-busqueda/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/posts/hackthebox-busqueda/</guid>
+      <description>Overview Nmap Searchor 2.4.0 Shell as svc Detecting Root Path Exploiting some python scripts Overview Identify and exploit the vulnerable of Searchor Enumerate logs from a git repository to find user crendentials As this user, run a python script that lets us inspect enviroment variables from docker containers Obtain administrator credentials to log in gitea Analyze the script to spot a path misuse from an imported file Get root Nmap danp@local:~|⇒ nmap -sV -sC 10.</description>
+    </item>
+    
+    <item>
       <title>Hack The Box: MonitorsTwo</title>
       <link>https://danp.bz/posts/hackthebox-monitorstwo/</link>
       <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
