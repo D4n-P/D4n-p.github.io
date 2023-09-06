@@ -26,6 +26,15 @@
     </item>
     
     <item>
+      <title>Vulnlab: Sync</title>
+      <link>https://danp.bz/posts/vulnlab-sync/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/posts/vulnlab-sync/</guid>
+      <description>Overview Nmap Abusing Rsync Service Cracking Custom Hashes Uploading Our Public Key User.txt Cracking Shadow Credentials Root.txt Extra Mile Overview Identify and exploit the rsync service to get the source code and database file Get the hashes and learn how they were generated Crack the custom hashes with hashcat Authenticate to the FTP service and upload our public key Escalate privileges horizontally to get user.txt Get shadow file that was zipped incorrectly Crack the password with john to login as sa sa user can write the backup.</description>
+    </item>
+    
+    <item>
       <title>Hack The Box: Soccer</title>
       <link>https://danp.bz/posts/hackthebox-soccer/</link>
       <pubDate>Sat, 10 Jun 2023 00:00:00 +0000</pubDate>

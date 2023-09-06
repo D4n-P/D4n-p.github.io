@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>hash-cracking on Journal</title>
+    <link>https://danp.bz/tags/hash-cracking/</link>
+    <description>Recent content in hash-cracking on Journal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 05 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danp.bz/tags/hash-cracking/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Vulnlab: Sync</title>
+      <link>https://danp.bz/posts/vulnlab-sync/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/posts/vulnlab-sync/</guid>
+      <description>Overview Nmap Abusing Rsync Service Cracking Custom Hashes Uploading Our Public Key User.txt Cracking Shadow Credentials Root.txt Extra Mile Overview Identify and exploit the rsync service to get the source code and database file Get the hashes and learn how they were generated Crack the custom hashes with hashcat Authenticate to the FTP service and upload our public key Escalate privileges horizontally to get user.txt Get shadow file that was zipped incorrectly Crack the password with john to login as sa sa user can write the backup.</description>
+    </item>
+    
+  </channel>
+</rss>

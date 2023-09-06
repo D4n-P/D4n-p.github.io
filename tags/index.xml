@@ -62,6 +62,15 @@
     </item>
     
     <item>
+      <title>hash-cracking</title>
+      <link>https://danp.bz/tags/hash-cracking/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/hash-cracking/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>hashcat</title>
       <link>https://danp.bz/tags/hashcat/</link>
       <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
@@ -71,11 +80,38 @@
     </item>
     
     <item>
+      <title>misconfig</title>
+      <link>https://danp.bz/tags/misconfig/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/misconfig/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rsync</title>
+      <link>https://danp.bz/tags/rsync/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/rsync/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>searchor</title>
       <link>https://danp.bz/tags/searchor/</link>
       <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
       
       <guid>https://danp.bz/tags/searchor/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>vulnlab</title>
+      <link>https://danp.bz/tags/vulnlab/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/tags/vulnlab/</guid>
       <description></description>
     </item>
     
