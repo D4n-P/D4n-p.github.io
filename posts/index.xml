@@ -6,7 +6,16 @@
     <description>Recent content in Posts on Journal</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 05 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danp.bz/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 07 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danp.bz/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Vulnlab: Data</title>
+      <link>https://danp.bz/posts/vulnlab-data/</link>
+      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/posts/vulnlab-data/</guid>
+      <description>Overview Nmap Identifying Vulnerable Grafana Cracking Custom Hashes Abusing Docker to Elevate Privileges Overview Identify the vulnerable version of grafana Abuse the arbitrary file read to retrieve the database file Get password hash and salt to crack with hashcat to get user.txt sudo -l command shows that docker exec * can be run by boris Use it to run privileged commands on the running container Mount the host disk inside the container to get root flag Nmap --- vulnlabs/easy-data » nmap -sV 10.</description>
+    </item>
+    
     <item>
       <title>Hack The Box: Busqueda</title>
       <link>https://danp.bz/posts/hackthebox-busqueda/</link>

