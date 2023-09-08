@@ -14,7 +14,13 @@
     <loc>https://danp.bz/tags/hash-cracking/</loc>
     <lastmod>2023-09-07T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://danp.bz/tags/java/</loc>
+    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://danp.bz/</loc>
+    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://danp.bz/tags/log4shell/</loc>
     <lastmod>2023-09-07T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://danp.bz/posts/</loc>
@@ -27,6 +33,9 @@
     <lastmod>2023-09-07T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://danp.bz/posts/vulnlab-data/</loc>
+    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://danp.bz/posts/vulnlab-feedback/</loc>
     <lastmod>2023-09-07T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://danp.bz/tags/cacti/</loc>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>log4shell on Journal</title>
+    <link>https://danp.bz/tags/log4shell/</link>
+    <description>Recent content in log4shell on Journal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 07 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://danp.bz/tags/log4shell/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Vulnlab: Feedback</title>
+      <link>https://danp.bz/posts/vulnlab-feedback/</link>
+      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://danp.bz/posts/vulnlab-feedback/</guid>
+      <description>Overview Nmap Directory Fuzzing Reverse Shell Overview Fuzz directories to find the feedback app Spot that the messages are being logged Submit a malicious jdni payload Get a reverse shell Find the config file with the root user password Nmap --- vulnlabs/easy-feedback » nmap -sV -sC 10.10.90.181 130 ↵ Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-07 20:25 EDT Nmap scan report for 10.10.90.181 Host is up (0.17s latency). Not shown: 998 closed tcp ports (conn-refused) PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 7.</description>
+    </item>
+    
+  </channel>
+</rss>

